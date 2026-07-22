@@ -50,10 +50,17 @@ html, body {
   height: 100dvh;
   max-height: 100dvh;
   padding: 12px 18px 10px;
+  padding-left: max(18px, env(safe-area-inset-left));
+  padding-right: max(18px, env(safe-area-inset-right));
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr) auto auto;
   gap: 10px;
   overflow: hidden;
+}
+
+.filter-toggle {
+  display: none;
 }
 
 /* Top bar */
@@ -665,40 +672,214 @@ html[data-theme="light"] .nav-primary {
   color: #fff;
 }
 
+/* —— Tablet / phone: natural scroll, stacked answer —— */
 @media (max-width: 860px) {
-  .split {
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 0.42fr) minmax(0, 1fr);
+  html, body {
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .pane-left {
+  .app {
+    height: auto;
     max-height: none;
+    min-height: 100dvh;
+    overflow: visible;
+    grid-template-rows: auto auto auto minmax(52vh, auto) auto;
+    gap: 10px;
+    padding: 10px 12px;
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 12px;
+    margin-right: 6px;
+  }
+
+  .filter-toggle[aria-expanded="true"] {
+    color: var(--ink);
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  }
+
+  /* Collapsed by default on small screens */
+  .filters {
+    display: none;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+  }
+
+  .filters.is-open {
+    display: flex;
+  }
+
+  .filters .sel {
+    flex: 1 1 100%;
+    max-width: none;
+    min-height: 44px;
+  }
+
+  .filters .chip {
+    flex: 1 1 calc(50% - 4px);
+    min-height: 44px;
+  }
+
+  .desktop-only,
+  .kbd-hint {
+    display: none !important;
+  }
+
+  .stage {
+    overflow: visible;
+    min-height: 52vh;
+  }
+
+  .card {
+    min-height: 52vh;
+    height: auto;
+    overflow: visible;
+  }
+
+  .face {
+    overflow: visible;
+    padding: 14px 14px 12px;
+  }
+
+  .back {
+    overflow: visible;
+    gap: 12px;
+  }
+
+  .back-head {
+    flex-wrap: wrap;
+    align-items: flex-start;
   }
 
   .back-title {
     white-space: normal;
   }
+
+  .back-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .split {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+    grid-template-rows: none;
+    overflow: visible;
+    gap: 12px;
+    flex: none;
+  }
+
+  .pane {
+    overflow: visible;
+    max-height: none;
+  }
+
+  .pane-left {
+    overflow: visible;
+    max-height: none;
+  }
+
+  .pane-right {
+    overflow: visible;
+  }
+
+  .pane-right .codebox {
+    flex: none;
+    height: auto;
+    max-height: min(60vh, 480px);
+    min-height: 180px;
+  }
+
+  .rate button {
+    min-height: 48px;
+    font-size: 14px;
+  }
+
+  .nav {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    gap: 8px;
+    padding: 8px 0 calc(6px + env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, transparent, var(--bg) 28%);
+  }
+
+  .nav-btn {
+    min-height: 48px;
+    font-size: 15px;
+  }
+
+  .icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .link {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .ptitle {
+    max-width: none;
+    font-size: clamp(28px, 8vw, 40px);
+  }
+
+  .reveal {
+    min-height: 52px;
+    font-size: 16px;
+  }
+
+  .copy-btn {
+    min-height: 36px;
+    padding: 0 12px;
+  }
+
+  /* Prefer no hover-dependent feedback on touch */
+  .chip:hover,
+  .nav-btn:hover,
+  .rate button:hover {
+    transform: none;
+  }
 }
 
 @media (max-width: 520px) {
   .app {
-    padding: 10px 12px 8px;
+    padding-top: 8px;
     gap: 8px;
   }
 
-  .ptitle { max-width: none; }
-  .filters .chip { flex: 1; }
-
-  .kbd-hint {
-    font-size: 11px;
+  .bar-mid .progress {
+    font-size: 13px;
   }
 
-  .rate button {
-    height: 40px;
-    font-size: 12px;
+  .pane-list li {
+    font-size: 15.5px;
   }
 
-  .nav-btn {
-    height: 40px;
+  .codebox code {
+    font-size: 14px;
+  }
+}
+
+/* Very short phones: still keep usable card body */
+@media (max-width: 860px) and (max-height: 700px) {
+  .stage,
+  .card {
+    min-height: 46vh;
   }
 }

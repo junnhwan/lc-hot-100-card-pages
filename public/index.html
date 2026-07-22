@@ -2,27 +2,33 @@
 <html lang="zh-CN" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1115" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <title>LC Hot 100 速记</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Source+Sans+3:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./study.css?v=9" />
+  <link rel="stylesheet" href="./study.css?v=10" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" id="hljs-theme" />
 </head>
 <body>
   <div class="app" id="app">
     <header class="bar">
-      <a class="link" href="./list.html">☰ 题库列表</a>
+      <a class="link" href="./list.html">☰ 题库</a>
       <div class="bar-mid">
         <span id="progress" class="progress">—</span>
       </div>
       <div class="bar-right">
+        <button type="button" class="chip filter-toggle" data-act="toggle-filters" id="filter-toggle" aria-expanded="false" aria-controls="filters">
+          筛选
+        </button>
         <button type="button" class="icon" id="btn-theme" title="主题">☾</button>
       </div>
     </header>
 
-    <div class="filters">
+    <div class="filters" id="filters">
       <select id="cat" class="sel" aria-label="分类"></select>
       <select id="mastery" class="sel" aria-label="掌握度">
         <option value="all">全部</option>
@@ -45,12 +51,12 @@
       </div>
     </main>
 
-    <nav class="nav">
+    <nav class="nav" aria-label="题目导航">
       <button type="button" class="nav-btn" data-act="prev" title="快捷键 ← 或 K">上一题</button>
       <button type="button" class="nav-btn nav-primary" data-act="next" title="快捷键 → 或 J">下一题</button>
     </nav>
 
-    <p class="kbd-hint" title="背面评分：1 不会 · 2 模糊 · 3 记住了">
+    <p class="kbd-hint desktop-only" title="背面评分：1 不会 · 2 模糊 · 3 记住了">
       <kbd>空格</kbd> 显示/收起答案
       <span class="dot">·</span>
       <kbd>←</kbd><kbd>→</kbd> 切题
@@ -63,6 +69,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/go.min.js"></script>
-  <script type="module" src="./study.js?v=9"></script>
+  <script type="module" src="./study.js?v=10"></script>
 </body>
 </html>

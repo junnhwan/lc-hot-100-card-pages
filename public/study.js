@@ -152,7 +152,7 @@ function frontHtml(p) {
         <h1 class="ptitle">${escapeHtml(p.title || '')}</h1>
         <p class="hint">想好后再显示答案</p>
       </div>
-      <button type="button" class="reveal" data-act="show" title="快捷键 空格">显示答案 <span class="btn-kbd">空格</span></button>
+      <button type="button" class="reveal" data-act="show" title="快捷键 空格">显示答案 <span class="btn-kbd desktop-only">空格</span></button>
     </div>
   `;
 }
@@ -195,7 +195,7 @@ function backHtml(p) {
         </div>
         <div class="back-actions">
           ${lc}
-          <button type="button" class="ghost" data-act="hide" title="快捷键 空格">回到正面 <span class="btn-kbd">空格</span></button>
+          <button type="button" class="ghost" data-act="hide" title="快捷键 空格">回到正面 <span class="btn-kbd desktop-only">空格</span></button>
         </div>
       </div>
       <div class="split">
@@ -210,9 +210,9 @@ function backHtml(p) {
         </section>
       </div>
       <div class="rate">
-        <button type="button" class="again ${m === 'unknown' ? 'is-on' : ''}" data-act="rate" data-level="unknown" title="快捷键 1">不会 <span class="btn-kbd">1</span></button>
-        <button type="button" class="hard ${m === 'fuzzy' ? 'is-on' : ''}" data-act="rate" data-level="fuzzy" title="快捷键 2">模糊 <span class="btn-kbd">2</span></button>
-        <button type="button" class="good ${m === 'known' ? 'is-on' : ''}" data-act="rate" data-level="known" title="快捷键 3">记住了 <span class="btn-kbd">3</span></button>
+        <button type="button" class="again ${m === 'unknown' ? 'is-on' : ''}" data-act="rate" data-level="unknown" title="快捷键 1">不会 <span class="btn-kbd desktop-only">1</span></button>
+        <button type="button" class="hard ${m === 'fuzzy' ? 'is-on' : ''}" data-act="rate" data-level="fuzzy" title="快捷键 2">模糊 <span class="btn-kbd desktop-only">2</span></button>
+        <button type="button" class="good ${m === 'known' ? 'is-on' : ''}" data-act="rate" data-level="known" title="快捷键 3">记住了 <span class="btn-kbd desktop-only">3</span></button>
       </div>
     </div>
   `;
@@ -443,6 +443,43 @@ function onFilter() {
   state.codeOpen = true;
   rebuildDeck();
   render({ animate: true });
+  updateFilterToggleLabel();
+}
+
+function isMobileFiltersMode() {
+  return window.matchMedia('(max-width: 860px)').matches;
+}
+
+function updateFilterToggleLabel() {
+  const btn = $('filter-toggle');
+  if (!btn) return;
+  const open = $('filters')?.classList.contains('is-open');
+  const parts = [];
+  if (state.category !== 'all') parts.push(state.category);
+  if (state.masteryFilter !== 'all') {
+    const map = { unknown: '不会', fuzzy: '模糊', known: '记住了', stub: '待补全' };
+    parts.push(map[state.masteryFilter] || state.masteryFilter);
+  }
+  const base = open ? '收起' : '筛选';
+  btn.textContent = !open && parts.length ? `筛选 · ${parts.join(' · ')}` : base;
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+function toggleFiltersPanel() {
+  const panel = $('filters');
+  if (!panel) return;
+  panel.classList.toggle('is-open');
+  updateFilterToggleLabel();
+}
+
+function syncFiltersForViewport() {
+  const panel = $('filters');
+  if (!panel) return;
+  // Desktop: always show. Mobile: collapsed unless user opened it.
+  if (!isMobileFiltersMode()) {
+    panel.classList.remove('is-open');
+  }
+  updateFilterToggleLabel();
 }
 
 function bind() {
@@ -485,6 +522,9 @@ function bind() {
       case 'shuffle':
         shuffle();
         break;
+      case 'toggle-filters':
+        toggleFiltersPanel();
+        break;
       case 'rate': {
         const level = el.getAttribute('data-level');
         if (level === 'unknown' || level === 'fuzzy' || level === 'known') rate(level);
@@ -507,6 +547,12 @@ function bind() {
   $('mastery')?.addEventListener('change', (e) => {
     state.masteryFilter = e.target.value;
     onFilter();
+  });
+
+  window.addEventListener('resize', () => {
+    // cheap debounce
+    clearTimeout(syncFiltersForViewport._t);
+    syncFiltersForViewport._t = setTimeout(syncFiltersForViewport, 120);
   });
 
   document.addEventListener('keydown', (e) => {
@@ -561,6 +607,7 @@ async function main() {
 
   fillCategories();
   rebuildDeck();
+  syncFiltersForViewport();
   render({ animate: false });
 }
 
