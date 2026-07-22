@@ -596,7 +596,8 @@ function renderProblemList() {
         state.expandedId = null;
       } else {
         state.expandedId = idKey;
-        // code stays collapsed when first expanding unless previously open
+        // list expand: show code by default (can still collapse)
+        if (p.status !== 'stub' && p.code) state.codeOpen.add(idKey);
       }
       renderProblemList();
     });
