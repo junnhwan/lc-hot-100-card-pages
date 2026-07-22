@@ -1142,6 +1142,15 @@ html[data-theme="light"] .code-stub {
   .stats {
     display: none;
   }
+
+  .study-banner {
+    margin: 8px 12px 0;
+    padding: 12px 14px;
+  }
+
+  .study-banner-text span {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1152,6 +1161,12 @@ html[data-theme="light"] .code-stub {
 
   .search-wrap {
     max-width: none;
+  }
+
+  .study-entry {
+    padding: 0 10px;
+    font-size: 12px;
+    height: 32px;
   }
 }
 
