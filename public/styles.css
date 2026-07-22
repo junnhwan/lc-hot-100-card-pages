@@ -765,17 +765,217 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* —— Overlay (stub for card/quiz) —— */
+/* —— Overlay (card / quiz) —— */
 .overlay {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: color-mix(in srgb, var(--bg) 72%, transparent);
-  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 16px;
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter: blur(6px);
+  overflow: auto;
 }
 
 .overlay[hidden] {
   display: none !important;
+}
+
+body.overlay-open {
+  overflow: hidden;
+}
+
+.overlay-shell {
+  position: relative;
+  width: min(720px, 100%);
+  margin: auto;
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45), var(--shadow);
+  overflow: hidden;
+}
+
+.overlay-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--panel-2);
+  flex-shrink: 0;
+}
+
+.overlay-mode-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.overlay-close {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--title);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.overlay-close:hover {
+  background: var(--panel-hover);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+
+.mode-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 22px 22px;
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+}
+
+.mode-progress {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.mode-face {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 200px;
+}
+
+.mode-front {
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 8px 8px;
+  min-height: 280px;
+}
+
+.mode-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 650;
+  color: var(--title);
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+}
+
+.mode-hint-preview {
+  margin: 0;
+  max-width: 36em;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  padding: 14px 16px;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-dim);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.mode-quiz-prompt {
+  margin: 0;
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
+.mode-back {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mode-head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mode-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mode-encourage {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed color-mix(in srgb, var(--mastery-fuzzy) 45%, var(--border));
+  background: color-mix(in srgb, var(--mastery-fuzzy) 10%, transparent);
+  color: var(--title);
+  font-size: 13px;
+}
+
+.mode-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border-soft);
+  margin-top: auto;
+}
+
+.btn-secondary {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.btn-secondary:hover {
+  background: var(--panel-hover);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  color: var(--title);
+}
+
+.mode-panel .btn-action {
+  align-self: flex-start;
+}
+
+.mode-panel .mode-nav .btn-action {
+  align-self: auto;
+}
+
+@media (max-width: 480px) {
+  .overlay {
+    padding: 0;
+  }
+
+  .overlay-shell {
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    margin: 0;
+  }
+
+  .mode-title {
+    font-size: 18px;
+  }
+
+  .mode-front {
+    min-height: 220px;
+    padding-top: 12px;
+  }
 }
 
 /* —— Responsive —— */

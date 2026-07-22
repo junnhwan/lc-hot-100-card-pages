@@ -7,13 +7,27 @@ const MASTERY_LABELS = {
   known: '记住了',
 };
 
-/** @type {{ selectedCategory: string | null, searchQuery: string, masteryFilter: string, expandedId: string | null, codeOpen: Set<string> }} */
+/** @type {{
+ *   selectedCategory: string | null,
+ *   searchQuery: string,
+ *   masteryFilter: string,
+ *   expandedId: string | null,
+ *   codeOpen: Set<string>,
+ *   mode: null | 'card' | 'quiz',
+ *   modeIndex: number,
+ *   cardFlipped: boolean,
+ *   quizRevealed: boolean,
+ * }} */
 const state = {
   selectedCategory: null, // null = all
   searchQuery: '',
   masteryFilter: 'all', // all | unknown | fuzzy | known | stub
   expandedId: null,
   codeOpen: new Set(),
+  mode: null,
+  modeIndex: 0,
+  cardFlipped: false,
+  quizRevealed: false,
 };
 
 /** @type {{ categories: Array<{name:string,count:number,order:number}>, problems: Array<object> } | null} */
@@ -276,6 +290,7 @@ function createMasteryToggles(p) {
       // re-render list so badge + filters stay consistent
       renderProblemList();
       renderStats();
+      if (state.mode) renderOverlay();
     });
     wrap.appendChild(btn);
   }
@@ -441,7 +456,7 @@ function buildExpandedBody(p) {
   cardBtn.textContent = '卡片';
   cardBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    console.log('card mode (stub)', p.id);
+    openMode('card', p.id);
   });
 
   const quizBtn = document.createElement('button');
@@ -450,7 +465,7 @@ function buildExpandedBody(p) {
   quizBtn.textContent = '测验';
   quizBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    console.log('quiz mode (stub)', p.id);
+    openMode('quiz', p.id);
   });
 
   actions.append(cardBtn, quizBtn);
@@ -503,7 +518,7 @@ function buildCollapsedRow(p) {
   cardBtn.textContent = '卡片';
   cardBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    console.log('card mode (stub)', p.id);
+    openMode('card', p.id);
   });
 
   const quizBtn = document.createElement('button');
@@ -512,7 +527,7 @@ function buildCollapsedRow(p) {
   quizBtn.textContent = '测验';
   quizBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    console.log('quiz mode (stub)', p.id);
+    openMode('quiz', p.id);
   });
 
   quick.append(cardBtn, quizBtn);
@@ -641,11 +656,418 @@ function bindSearch() {
   });
 }
 
+// —— Overlay: card / quiz modes ——
+
+/**
+ * @param {string | number} problemId
+ * @returns {number} index in filtered list, or -1
+ */
+function findFilteredIndex(problemId) {
+  const list = filteredProblems();
+  const key = String(problemId);
+  return list.findIndex((p) => String(p.id) === key);
+}
+
+/**
+ * @param {'card' | 'quiz'} mode
+ * @param {string | number} problemId
+ */
+function openMode(mode, problemId) {
+  const idx = findFilteredIndex(problemId);
+  if (idx < 0) return;
+  state.mode = mode;
+  state.modeIndex = idx;
+  state.cardFlipped = false;
+  state.quizRevealed = false;
+  document.body.classList.add('overlay-open');
+  renderOverlay();
+}
+
+function closeOverlay() {
+  state.mode = null;
+  state.cardFlipped = false;
+  state.quizRevealed = false;
+  document.body.classList.remove('overlay-open');
+  const el = $('overlay');
+  if (el) {
+    el.hidden = true;
+    el.setAttribute('aria-hidden', 'true');
+    el.replaceChildren();
+  }
+  // refresh list badges after mastery changes inside overlay
+  renderProblemList();
+  renderStats();
+}
+
+function modeNavigate(delta) {
+  const list = filteredProblems();
+  if (list.length === 0) {
+    closeOverlay();
+    return;
+  }
+  let next = state.modeIndex + delta;
+  if (next < 0) next = list.length - 1;
+  if (next >= list.length) next = 0;
+  state.modeIndex = next;
+  state.cardFlipped = false;
+  state.quizRevealed = false;
+  renderOverlay();
+}
+
+/**
+ * Shared "back" content: full hints, notes, code, mastery.
+ * @param {object} p
+ * @param {{ encourageMastery?: boolean }} [opts]
+ * @returns {HTMLElement}
+ */
+function buildModeBack(p, opts = {}) {
+  const back = document.createElement('div');
+  back.className = 'mode-back';
+
+  const head = document.createElement('div');
+  head.className = 'mode-head';
+
+  const titleEl = document.createElement('h2');
+  titleEl.className = 'mode-title';
+  titleEl.textContent = `#${p.id} ${p.title}`;
+
+  const meta = document.createElement('div');
+  meta.className = 'mode-meta';
+  const cat = document.createElement('span');
+  cat.className = 'problem-cat';
+  cat.textContent = p.category || '';
+  meta.append(cat, createMasteryToggles(p));
+
+  head.append(titleEl, meta);
+  back.appendChild(head);
+
+  if (opts.encourageMastery) {
+    const tip = document.createElement('p');
+    tip.className = 'mode-encourage';
+    tip.textContent = '回忆得怎么样？标一下掌握度吧';
+    back.appendChild(tip);
+  }
+
+  const hints = Array.isArray(p.hints) ? p.hints.filter(Boolean) : [];
+  if (hints.length > 0) {
+    const sec = document.createElement('section');
+    sec.className = 'detail-section';
+    const h = document.createElement('h4');
+    h.className = 'detail-section-title';
+    h.textContent = '思路要点';
+    const ul = document.createElement('ul');
+    ul.className = 'detail-list';
+    for (const item of hints) {
+      const li = document.createElement('li');
+      li.textContent = item;
+      ul.appendChild(li);
+    }
+    sec.append(h, ul);
+    back.appendChild(sec);
+  }
+
+  const notes = Array.isArray(p.notes) ? p.notes.filter(Boolean) : [];
+  if (notes.length > 0) {
+    const sec = document.createElement('section');
+    sec.className = 'detail-section';
+    const h = document.createElement('h4');
+    h.className = 'detail-section-title';
+    h.textContent = '易错 / 补充';
+    const ul = document.createElement('ul');
+    ul.className = 'detail-list';
+    for (const item of notes) {
+      const li = document.createElement('li');
+      li.textContent = item;
+      ul.appendChild(li);
+    }
+    sec.append(h, ul);
+    back.appendChild(sec);
+  }
+
+  const codeSec = document.createElement('section');
+  codeSec.className = 'detail-section detail-code-section';
+  const codeH = document.createElement('h4');
+  codeH.className = 'detail-section-title';
+  codeH.textContent = '代码';
+
+  if (p.status === 'stub' || !p.code) {
+    const stub = document.createElement('div');
+    stub.className = 'code-stub';
+    stub.textContent = '待补全';
+    codeSec.append(codeH, stub);
+  } else {
+    const pre = document.createElement('pre');
+    pre.className = 'code-block';
+    const code = document.createElement('code');
+    code.className = 'language-go';
+    code.textContent = p.code;
+    pre.appendChild(code);
+    codeSec.append(codeH, pre);
+    queueMicrotask(() => highlightCodeIfNeeded(p, codeSec));
+  }
+  back.appendChild(codeSec);
+
+  return back;
+}
+
+/**
+ * @param {object} p
+ * @param {number} index
+ * @param {number} total
+ * @returns {HTMLElement}
+ */
+function buildCardMode(p, index, total) {
+  const panel = document.createElement('div');
+  panel.className = 'mode-panel mode-card' + (state.cardFlipped ? ' is-flipped' : '');
+
+  const progress = document.createElement('div');
+  progress.className = 'mode-progress';
+  progress.textContent = `${index + 1} / ${total}`;
+
+  // Front
+  const front = document.createElement('div');
+  front.className = 'mode-face mode-front';
+
+  const frontTitle = document.createElement('h2');
+  frontTitle.className = 'mode-title';
+  frontTitle.textContent = `#${p.id} ${p.title}`;
+
+  const hintPreview = document.createElement('p');
+  hintPreview.className = 'mode-hint-preview';
+  const hints = Array.isArray(p.hints) ? p.hints.filter(Boolean) : [];
+  hintPreview.textContent = hints[0] || '想一想…';
+
+  const flipBtn = document.createElement('button');
+  flipBtn.type = 'button';
+  flipBtn.className = 'btn-action';
+  flipBtn.textContent = '翻转';
+  flipBtn.addEventListener('click', () => {
+    state.cardFlipped = true;
+    renderOverlay();
+  });
+
+  front.append(frontTitle, hintPreview, flipBtn);
+
+  // Back
+  const backWrap = document.createElement('div');
+  backWrap.className = 'mode-face mode-face-back';
+  const back = buildModeBack(p);
+  const flipBackBtn = document.createElement('button');
+  flipBackBtn.type = 'button';
+  flipBackBtn.className = 'btn-action btn-secondary';
+  flipBackBtn.textContent = '翻回正面';
+  flipBackBtn.addEventListener('click', () => {
+    state.cardFlipped = false;
+    renderOverlay();
+  });
+  back.appendChild(flipBackBtn);
+  backWrap.appendChild(back);
+
+  // Show only active face (simpler than 3D CSS flip for keyboard/a11y)
+  if (state.cardFlipped) {
+    front.hidden = true;
+  } else {
+    backWrap.hidden = true;
+  }
+
+  const nav = document.createElement('div');
+  nav.className = 'mode-nav';
+
+  const prevBtn = document.createElement('button');
+  prevBtn.type = 'button';
+  prevBtn.className = 'btn-action btn-secondary';
+  prevBtn.textContent = '← 上一题';
+  prevBtn.addEventListener('click', () => modeNavigate(-1));
+
+  const nextBtn = document.createElement('button');
+  nextBtn.type = 'button';
+  nextBtn.className = 'btn-action btn-secondary';
+  nextBtn.textContent = '下一题 →';
+  nextBtn.addEventListener('click', () => modeNavigate(1));
+
+  nav.append(prevBtn, nextBtn);
+
+  panel.append(progress, front, backWrap, nav);
+  return panel;
+}
+
+/**
+ * @param {object} p
+ * @param {number} index
+ * @param {number} total
+ * @returns {HTMLElement}
+ */
+function buildQuizMode(p, index, total) {
+  const panel = document.createElement('div');
+  panel.className = 'mode-panel mode-quiz';
+
+  const progress = document.createElement('div');
+  progress.className = 'mode-progress';
+  progress.textContent = `${index + 1} / ${total}`;
+
+  if (!state.quizRevealed) {
+    const phaseA = document.createElement('div');
+    phaseA.className = 'mode-face mode-front';
+
+    const titleEl = document.createElement('h2');
+    titleEl.className = 'mode-title';
+    titleEl.textContent = `#${p.id} ${p.title}`;
+
+    const prompt = document.createElement('p');
+    prompt.className = 'mode-quiz-prompt';
+    prompt.textContent = '先自己过一遍';
+
+    const revealBtn = document.createElement('button');
+    revealBtn.type = 'button';
+    revealBtn.className = 'btn-action';
+    revealBtn.textContent = '揭晓';
+    revealBtn.addEventListener('click', () => {
+      state.quizRevealed = true;
+      renderOverlay();
+    });
+
+    phaseA.append(titleEl, prompt, revealBtn);
+    panel.append(progress, phaseA);
+  } else {
+    const back = buildModeBack(p, { encourageMastery: true });
+
+    const nextBtn = document.createElement('button');
+    nextBtn.type = 'button';
+    nextBtn.className = 'btn-action';
+    nextBtn.textContent = '下一题';
+    nextBtn.addEventListener('click', () => modeNavigate(1));
+    back.appendChild(nextBtn);
+
+    panel.append(progress, back);
+  }
+
+  return panel;
+}
+
+function renderOverlay() {
+  const el = $('overlay');
+  if (!el) return;
+
+  if (!state.mode) {
+    el.hidden = true;
+    el.setAttribute('aria-hidden', 'true');
+    el.replaceChildren();
+    document.body.classList.remove('overlay-open');
+    return;
+  }
+
+  const list = filteredProblems();
+  if (list.length === 0) {
+    closeOverlay();
+    return;
+  }
+
+  // clamp index if filter list shrank
+  if (state.modeIndex >= list.length) state.modeIndex = list.length - 1;
+  if (state.modeIndex < 0) state.modeIndex = 0;
+
+  const p = list[state.modeIndex];
+  el.hidden = false;
+  el.setAttribute('aria-hidden', 'false');
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-modal', 'true');
+  el.setAttribute(
+    'aria-label',
+    state.mode === 'card' ? '卡片模式' : '测验模式'
+  );
+  el.replaceChildren();
+
+  const shell = document.createElement('div');
+  shell.className = 'overlay-shell';
+
+  const topBar = document.createElement('div');
+  topBar.className = 'overlay-topbar';
+
+  const modeLabel = document.createElement('span');
+  modeLabel.className = 'overlay-mode-label';
+  modeLabel.textContent = state.mode === 'card' ? '卡片模式' : '测验模式';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'overlay-close';
+  closeBtn.setAttribute('aria-label', '关闭');
+  closeBtn.textContent = '×';
+  closeBtn.addEventListener('click', () => closeOverlay());
+
+  topBar.append(modeLabel, closeBtn);
+
+  const content =
+    state.mode === 'card'
+      ? buildCardMode(p, state.modeIndex, list.length)
+      : buildQuizMode(p, state.modeIndex, list.length);
+
+  shell.append(topBar, content);
+  el.appendChild(shell);
+
+  // click backdrop to close
+  el.onclick = (e) => {
+    if (e.target === el) closeOverlay();
+  };
+}
+
+function bindOverlayKeys() {
+  document.addEventListener('keydown', (e) => {
+    if (!state.mode) return;
+
+    // don't steal keys while typing in search (overlay should block body, but be safe)
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeOverlay();
+      return;
+    }
+
+    if (state.mode === 'card') {
+      if (e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault();
+        state.cardFlipped = !state.cardFlipped;
+        renderOverlay();
+        return;
+      }
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        modeNavigate(-1);
+        return;
+      }
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        modeNavigate(1);
+        return;
+      }
+    }
+
+    if (state.mode === 'quiz') {
+      if (e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault();
+        if (!state.quizRevealed) {
+          state.quizRevealed = true;
+          renderOverlay();
+        } else {
+          modeNavigate(1);
+        }
+        return;
+      }
+      if (e.key === 'ArrowRight' && state.quizRevealed) {
+        e.preventDefault();
+        modeNavigate(1);
+      }
+    }
+  });
+}
+
 async function main() {
   initTheme();
   loadMastery();
   bindSearch();
   bindFilterChips();
+  bindOverlayKeys();
 
   const res = await fetch('./problems.json');
   if (!res.ok) throw new Error('failed to load problems.json');
