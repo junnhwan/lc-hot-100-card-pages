@@ -7,9 +7,8 @@ const MASTERY_LABELS = {
   known: '记住了',
 };
 
-/** @type {{ categories: Array<{name:string,count:number}>, problems: Array<object> } | null} */
+/** @type {{ categories: Array<{name:string,count:number,order:number}>, problems: Array<object> } | null} */
 let catalog = null;
-
 /** @type {Record<string, 'unknown'|'fuzzy'|'known'>} */
 let masteryMap = {};
 
@@ -19,8 +18,7 @@ const state = {
   /** @type {object[]} */
   deck: [],
   index: 0,
-  flipped: false,
-  hintsOpen: true,
+  side: 'front', // front | back
   codeOpen: false,
 };
 
@@ -32,6 +30,7 @@ function loadMastery() {
   try {
     const raw = localStorage.getItem(MASTER_KEY);
     masteryMap = raw ? JSON.parse(raw) || {} : {};
+    if (typeof masteryMap !== 'object' || masteryMap === null) masteryMap = {};
   } catch {
     masteryMap = {};
   }
@@ -51,7 +50,7 @@ function getMastery(id) {
   return 'unknown';
 }
 
-function setMastery(id, level) {
+function setMasteryValue(id, level) {
   masteryMap[String(id)] = level;
   saveMastery();
 }
@@ -59,17 +58,16 @@ function setMastery(id, level) {
 function applyTheme(theme) {
   const next = theme === 'light' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
-  const hljsLink = $('hljs-theme');
-  if (hljsLink) {
-    hljsLink.href =
+  const link = $('hljs-theme');
+  if (link) {
+    link.href =
       next === 'light'
         ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css'
         : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css';
   }
   const btn = $('theme-toggle');
   if (btn) {
-    const icon = btn.querySelector('.theme-icon');
-    if (icon) icon.textContent = next === 'light' ? '☀' : '☾';
+    btn.textContent = next === 'light' ? '☀' : '☾';
     btn.title = next === 'light' ? '切换到深色' : '切换到浅色';
   }
   try {
@@ -101,9 +99,8 @@ function filteredBase() {
     list = list.filter((p) => p.category === state.category);
   }
   const mf = state.masteryFilter;
-  if (mf === 'stub') {
-    list = list.filter((p) => p.status === 'stub');
-  } else if (mf === 'unknown' || mf === 'fuzzy' || mf === 'known') {
+  if (mf === 'stub') list = list.filter((p) => p.status === 'stub');
+  else if (mf === 'unknown' || mf === 'fuzzy' || mf === 'known') {
     list = list.filter((p) => getMastery(p.id) === mf);
   }
   return list;
@@ -118,7 +115,9 @@ function rebuildDeck({ keepId = null, shuffle = false } = {}) {
     }
   } else {
     list.sort((a, b) => {
-      if (a.categoryOrder !== b.categoryOrder) return a.categoryOrder - b.categoryOrder;
+      const ao = a.categoryOrder ?? 0;
+      const bo = b.categoryOrder ?? 0;
+      if (ao !== bo) return ao - bo;
       return Number(a.id) - Number(b.id);
     });
   }
@@ -131,22 +130,22 @@ function rebuildDeck({ keepId = null, shuffle = false } = {}) {
     const idx = list.findIndex((p) => String(p.id) === String(keepId));
     state.index = idx >= 0 ? idx : 0;
   } else {
-    state.index = Math.min(state.index, list.length - 1);
+    state.index = Math.min(Math.max(0, state.index), list.length - 1);
   }
 }
 
-function currentProblem() {
+function current() {
   return state.deck[state.index] || null;
 }
 
-function fillCategorySelect() {
+function fillCategories() {
   const sel = $('cat-select');
   if (!sel || !catalog) return;
   const prev = state.category;
   sel.innerHTML = '';
   const all = document.createElement('option');
   all.value = 'all';
-  all.textContent = `全部 (${catalog.problems.length})`;
+  all.textContent = `全部分类 (${catalog.problems.length})`;
   sel.append(all);
   for (const c of catalog.categories) {
     const opt = document.createElement('option');
@@ -172,118 +171,93 @@ function renderStats() {
     else if (m === 'fuzzy') fuzzy++;
     else unknown++;
   }
-  const el = $('study-stats');
-  if (el) {
-    el.innerHTML = `记住 <strong>${known}</strong> · 模糊 <strong>${fuzzy}</strong> · 不会 <strong>${unknown}</strong>`;
-  }
-}
-
-function setFlipped(on) {
-  state.flipped = !!on;
-  const card = $('flashcard');
-  if (card) card.dataset.flipped = state.flipped ? 'true' : 'false';
-}
-
-function renderProgress() {
-  const el = $('progress-text');
-  if (!el) return;
-  if (!state.deck.length) {
-    el.textContent = '0 / 0';
-    return;
-  }
-  el.innerHTML = `${state.index + 1} <span>/</span> ${state.deck.length}`;
-}
-
-function renderMasteryButtons(p) {
-  const wrap = $('mastery-btns');
-  if (!wrap || !p) return;
-  const level = getMastery(p.id);
-  for (const btn of wrap.querySelectorAll('.m-btn')) {
-    const l = btn.getAttribute('data-level');
-    btn.classList.toggle('is-active', l === level);
-  }
+  const el = $('stats');
+  if (el) el.innerHTML = `记 <b>${known}</b> · 模 <b>${fuzzy}</b> · 不 <b>${unknown}</b>`;
 }
 
 function fillList(ul, items) {
   ul.replaceChildren();
+  if (!items.length) {
+    const li = document.createElement('li');
+    li.textContent = '暂无';
+    ul.append(li);
+    return;
+  }
   for (const t of items) {
     const li = document.createElement('li');
-    li.textContent = t;
+    li.textContent = String(t);
     ul.append(li);
   }
 }
 
+function showSide(side) {
+  state.side = side === 'back' ? 'back' : 'front';
+  const front = $('side-front');
+  const back = $('side-back');
+  const card = $('card');
+  if (!front || !back || !card) return;
+  const isBack = state.side === 'back';
+  front.hidden = isBack;
+  back.hidden = !isBack;
+  card.dataset.side = state.side;
+}
+
 function renderCode(p) {
-  const codePanel = $('code-panel');
-  const stubPanel = $('stub-panel');
+  const wrap = $('code-wrap');
+  const stub = $('stub-wrap');
+  const btn = $('btn-code');
   const codeEl = $('back-code');
-  const toggle = $('btn-toggle-code');
-  if (!codePanel || !stubPanel || !codeEl || !toggle) return;
+  if (!wrap || !stub || !btn || !codeEl) return;
 
   if (p.status === 'stub' || !p.code) {
-    codePanel.hidden = true;
-    stubPanel.hidden = false;
-    toggle.hidden = true;
+    wrap.hidden = true;
+    stub.hidden = false;
+    btn.hidden = true;
     return;
   }
 
-  stubPanel.hidden = true;
-  toggle.hidden = false;
-  toggle.textContent = state.codeOpen ? '收起代码' : '展开代码';
-  codePanel.hidden = !state.codeOpen;
+  stub.hidden = true;
+  btn.hidden = false;
+  btn.textContent = state.codeOpen ? '收起代码' : '展开代码';
+  wrap.hidden = !state.codeOpen;
   if (state.codeOpen) {
     codeEl.textContent = p.code;
     if (window.hljs) {
       codeEl.className = 'language-go';
-      window.hljs.highlightElement(codeEl);
+      try {
+        window.hljs.highlightElement(codeEl);
+      } catch {
+        /* ignore */
+      }
     }
   }
 }
 
-function renderHints(p) {
-  const ul = $('back-hints');
-  const toggle = $('btn-toggle-hints');
-  if (!ul || !toggle) return;
-  const hints = Array.isArray(p.hints) ? p.hints : [];
-  if (!hints.length) {
-    ul.replaceChildren();
-    const li = document.createElement('li');
-    li.textContent = '暂无要点';
-    ul.append(li);
-    toggle.hidden = true;
-    return;
+function renderMastery(p) {
+  const level = getMastery(p.id);
+  const wrap = $('mastery-btns');
+  if (!wrap) return;
+  for (const btn of wrap.querySelectorAll('.m-btn')) {
+    btn.classList.toggle('is-active', btn.getAttribute('data-level') === level);
   }
-  toggle.hidden = false;
-  toggle.textContent = state.hintsOpen ? '收起' : '展开';
-  ul.hidden = !state.hintsOpen;
-  if (state.hintsOpen) fillList(ul, hints);
-}
-
-function renderNotes(p) {
-  const block = $('notes-block');
-  const ul = $('back-notes');
-  if (!block || !ul) return;
-  const notes = Array.isArray(p.notes) ? p.notes : [];
-  if (!notes.length) {
-    block.hidden = true;
-    return;
-  }
-  block.hidden = false;
-  fillList(ul, notes);
 }
 
 function renderCard() {
-  const p = currentProblem();
+  const p = current();
   const empty = $('empty');
-  const deck = $('deck');
+  const card = $('card');
+  const progress = $('progress');
+
   if (!p) {
     if (empty) empty.hidden = false;
-    if (deck) deck.hidden = true;
-    renderProgress();
+    if (card) card.hidden = true;
+    if (progress) progress.textContent = '0 / 0';
     return;
   }
+
   if (empty) empty.hidden = true;
-  if (deck) deck.hidden = false;
+  if (card) card.hidden = false;
+  if (progress) progress.textContent = `${state.index + 1} / ${state.deck.length}`;
 
   const m = getMastery(p.id);
   const mLabel = p.status === 'stub' ? '待补全' : MASTERY_LABELS[m];
@@ -292,7 +266,7 @@ function renderCard() {
   const fm = $('front-mastery');
   fm.textContent = mLabel;
   fm.dataset.level = p.status === 'stub' ? 'unknown' : m;
-  $('front-index').textContent = `${state.index + 1} / ${state.deck.length}`;
+  $('front-pos').textContent = `${state.index + 1} / ${state.deck.length}`;
   $('front-id').textContent = `#${p.id}`;
   $('front-title').textContent = p.title || '—';
 
@@ -300,85 +274,82 @@ function renderCard() {
   $('back-title').textContent = `#${p.id}  ${p.title || ''}`;
   const lc = $('back-lc');
   if (lc) {
-    lc.href = p.url || '#';
-    lc.style.display = p.url ? '' : 'none';
+    if (p.url) {
+      lc.href = p.url;
+      lc.hidden = false;
+    } else {
+      lc.hidden = true;
+    }
   }
 
-  renderHints(p);
-  renderNotes(p);
+  fillList($('back-hints'), Array.isArray(p.hints) ? p.hints : []);
+
+  const notes = Array.isArray(p.notes) ? p.notes : [];
+  const notesPanel = $('notes-panel');
+  if (notesPanel) {
+    if (notes.length) {
+      notesPanel.hidden = false;
+      fillList($('back-notes'), notes);
+    } else {
+      notesPanel.hidden = true;
+    }
+  }
+
   renderCode(p);
-  renderMasteryButtons(p);
-  setFlipped(state.flipped);
-  renderProgress();
+  renderMastery(p);
+  showSide(state.side);
 }
 
-function goTo(index, { resetFlip = true } = {}) {
+function goTo(index) {
   if (!state.deck.length) return;
   const n = state.deck.length;
   state.index = ((index % n) + n) % n;
-  if (resetFlip) {
-    state.flipped = false;
-    state.codeOpen = false;
-    state.hintsOpen = true;
-  }
-  // retrigger enter animation when changing cards while on front
-  const card = $('flashcard');
-  if (card && !state.flipped) {
-    card.style.animation = 'none';
-    // force reflow
-    void card.offsetWidth;
-    card.style.animation = '';
-  }
+  state.side = 'front';
+  state.codeOpen = false;
   renderCard();
 }
 
 function next() {
   goTo(state.index + 1);
 }
-
 function prev() {
   goTo(state.index - 1);
 }
 
 function randomOne() {
-  if (state.deck.length < 2) return;
-  let nextIdx = state.index;
-  while (nextIdx === state.index) {
-    nextIdx = Math.floor(Math.random() * state.deck.length);
+  if (state.deck.length < 2) {
+    goTo(0);
+    return;
   }
-  goTo(nextIdx);
+  let i = state.index;
+  while (i === state.index) i = Math.floor(Math.random() * state.deck.length);
+  goTo(i);
 }
 
 function shuffleDeck() {
-  const keep = currentProblem()?.id ?? null;
-  rebuildDeck({ keepId: keep, shuffle: true });
-  // after shuffle, jump to a fresh start for ritual feel
-  if (state.deck.length) {
-    state.index = 0;
-    state.flipped = false;
-    state.codeOpen = false;
-    state.hintsOpen = true;
-  }
+  rebuildDeck({ shuffle: true });
+  state.index = 0;
+  state.side = 'front';
+  state.codeOpen = false;
   renderCard();
 }
 
-function bindControls() {
+function onFilterChange() {
+  state.index = 0;
+  state.side = 'front';
+  state.codeOpen = false;
+  rebuildDeck({ shuffle: false });
+  renderCard();
+}
+
+function bind() {
   $('cat-select')?.addEventListener('change', (e) => {
     state.category = e.target.value;
-    state.index = 0;
-    state.flipped = false;
-    state.codeOpen = false;
-    rebuildDeck({ shuffle: false });
-    renderCard();
+    onFilterChange();
   });
-
   $('mastery-select')?.addEventListener('change', (e) => {
     state.masteryFilter = e.target.value;
-    state.index = 0;
-    state.flipped = false;
-    state.codeOpen = false;
-    rebuildDeck({ shuffle: false });
-    renderCard();
+    onFilterChange();
   });
 
   $('btn-prev')?.addEventListener('click', prev);
@@ -386,22 +357,19 @@ function bindControls() {
   $('btn-shuffle')?.addEventListener('click', shuffleDeck);
   $('btn-random')?.addEventListener('click', randomOne);
 
-  $('btn-flip-front')?.addEventListener('click', () => {
-    setFlipped(true);
+  // Reliable show/hide — no 3D hit-testing issues
+  $('btn-show')?.addEventListener('click', () => {
+    state.side = 'back';
+    renderCard();
   });
-  $('btn-flip-back')?.addEventListener('click', () => {
-    setFlipped(false);
-  });
-
-  $('btn-toggle-hints')?.addEventListener('click', () => {
-    state.hintsOpen = !state.hintsOpen;
-    const p = currentProblem();
-    if (p) renderHints(p);
+  $('btn-hide')?.addEventListener('click', () => {
+    state.side = 'front';
+    renderCard();
   });
 
-  $('btn-toggle-code')?.addEventListener('click', () => {
+  $('btn-code')?.addEventListener('click', () => {
     state.codeOpen = !state.codeOpen;
-    const p = currentProblem();
+    const p = current();
     if (p) renderCode(p);
   });
 
@@ -409,41 +377,40 @@ function bindControls() {
     const btn = e.target.closest('.m-btn');
     if (!btn) return;
     const level = btn.getAttribute('data-level');
-    const p = currentProblem();
+    const p = current();
     if (!p || !level) return;
-    setMastery(p.id, level);
+    setMasteryValue(p.id, level);
     renderStats();
-    // if filtered by mastery, deck may shrink
     const keepId = p.id;
-    rebuildDeck({ keepId, shuffle: false });
+    rebuildDeck({ keepId });
     if (!state.deck.length) {
       renderCard();
       return;
     }
-    // stay on same problem if still in deck
     const idx = state.deck.findIndex((x) => String(x.id) === String(keepId));
-    if (idx < 0) {
-      state.index = Math.min(state.index, state.deck.length - 1);
-    } else {
-      state.index = idx;
-    }
+    state.index = idx >= 0 ? idx : Math.min(state.index, state.deck.length - 1);
     renderCard();
   });
 
   document.addEventListener('keydown', (e) => {
     const tag = (e.target && e.target.tagName) || '';
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON') {
+      // still allow shortcuts when focus not in text field except space on buttons
+      if (tag === 'SELECT' || tag === 'INPUT' || tag === 'TEXTAREA') return;
+    }
     if (e.key === ' ' || e.code === 'Space') {
+      if (tag === 'BUTTON') return;
       e.preventDefault();
-      setFlipped(!state.flipped);
+      state.side = state.side === 'front' ? 'back' : 'front';
+      renderCard();
       return;
     }
-    if (e.key === 'ArrowRight' || e.key === 'j') {
+    if (e.key === 'ArrowRight' || e.key === 'j' || e.key === 'J') {
       e.preventDefault();
       next();
       return;
     }
-    if (e.key === 'ArrowLeft' || e.key === 'k') {
+    if (e.key === 'ArrowLeft' || e.key === 'k' || e.key === 'K') {
       e.preventDefault();
       prev();
       return;
@@ -458,20 +425,25 @@ function bindControls() {
 async function main() {
   initTheme();
   loadMastery();
-  bindControls();
+  bind();
 
   const res = await fetch('./problems.json');
-  if (!res.ok) throw new Error('failed to load problems.json');
+  if (!res.ok) throw new Error('load failed');
   catalog = await res.json();
+  if (!catalog?.problems?.length) throw new Error('empty catalog');
 
-  fillCategorySelect();
-  rebuildDeck({ shuffle: false });
+  fillCategories();
+  rebuildDeck();
   renderStats();
   renderCard();
 }
 
 main().catch((err) => {
   console.error(err);
-  const title = $('front-title');
-  if (title) title.textContent = '加载失败，请刷新';
+  const t = $('front-title');
+  if (t) t.textContent = '加载失败，请刷新';
+  const card = $('card');
+  if (card) card.hidden = false;
+  const front = $('side-front');
+  if (front) front.hidden = false;
 });

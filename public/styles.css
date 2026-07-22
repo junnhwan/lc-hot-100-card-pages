@@ -125,29 +125,113 @@ body {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  height: 32px;
-  padding: 0 12px;
+  height: 36px;
+  padding: 0 16px;
   border-radius: 999px;
   text-decoration: none;
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 700;
   letter-spacing: 0.02em;
   color: #1a1208;
-  background: linear-gradient(180deg, #f0c98a, #e8b86d);
-  border: 1px solid transparent;
-  box-shadow: 0 6px 16px rgba(232, 184, 109, 0.22);
+  background: #f0b429;
+  border: 2px solid #f6d27a;
+  box-shadow: 0 0 0 3px rgba(240, 180, 41, 0.18), 0 8px 20px rgba(240, 180, 41, 0.28);
   transition: filter 0.15s ease, transform 0.15s ease;
+  white-space: nowrap;
 }
 
 .study-entry:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.08);
   transform: translateY(-1px);
   color: #1a1208;
 }
 
 html[data-theme="light"] .study-entry {
   color: #fffaf2;
-  background: linear-gradient(180deg, #c48a32, #b07a28);
+  background: #c48a1a;
+  border-color: #d4a43a;
+  box-shadow: 0 0 0 3px rgba(196, 138, 26, 0.15), 0 8px 18px rgba(196, 138, 26, 0.22);
+}
+
+/* Full-width study CTA under topbar */
+.study-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 10px 16px 0;
+  padding: 14px 18px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #1a1208;
+  background: linear-gradient(100deg, #f0b429 0%, #f6c95a 55%, #e8a820 100%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 10px 28px rgba(240, 180, 41, 0.22);
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.study-banner:hover {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+  color: #1a1208;
+}
+
+.study-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.study-banner-text strong {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.study-banner-text span {
+  font-size: 12.5px;
+  opacity: 0.82;
+  font-weight: 500;
+}
+
+.study-banner-cta {
+  flex-shrink: 0;
+  font-size: 13.5px;
+  font-weight: 800;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+html[data-theme="light"] .study-banner {
+  color: #fffaf2;
+  background: linear-gradient(100deg, #c48a1a, #d4a43a 50%, #b07a18);
+}
+
+.sidebar-study {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1208;
+  background: #f0b429;
+  border: 1px solid #f6d27a;
+}
+
+.sidebar-study:hover {
+  filter: brightness(1.06);
+  color: #1a1208;
+}
+
+html[data-theme="light"] .sidebar-study {
+  color: #fffaf2;
+  background: #c48a1a;
+  border-color: #d4a43a;
 }
 
 .search-wrap {

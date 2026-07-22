@@ -6,149 +6,112 @@
   <title>专注刷卡 · LC Hot 100</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap"
-    rel="stylesheet"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./study.css" />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"
-    id="hljs-theme"
-  />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" id="hljs-theme" />
 </head>
 <body>
-  <div class="atmosphere" aria-hidden="true">
-    <div class="orb orb-a"></div>
-    <div class="orb orb-b"></div>
-    <div class="grain"></div>
-  </div>
+  <div class="bg" aria-hidden="true"></div>
 
-  <header class="study-top">
-    <a class="back-link" href="./index.html">
-      <span class="back-arrow" aria-hidden="true">←</span>
-      题库列表
-    </a>
-    <div class="study-brand">
-      <span class="brand-dot" aria-hidden="true"></span>
-      <span class="brand-text">专注刷卡</span>
-    </div>
-    <div class="study-top-right">
-      <div id="study-stats" class="study-stats" aria-live="polite"></div>
-      <button id="theme-toggle" type="button" class="icon-btn" title="切换主题" aria-label="切换主题">
-        <span class="theme-icon" aria-hidden="true">☾</span>
-      </button>
-    </div>
-  </header>
+  <div class="shell">
+    <header class="top">
+      <a class="back" href="./index.html">← 题库列表</a>
+      <div class="brand">专注刷卡</div>
+      <div class="top-right">
+        <span id="stats" class="stats"></span>
+        <button type="button" id="theme-toggle" class="icon-btn" title="切换主题">☾</button>
+      </div>
+    </header>
 
-  <section class="controls" aria-label="筛选与导航">
-    <div class="controls-row">
-      <label class="field">
-        <span class="field-label">分类</span>
-        <select id="cat-select" class="select"></select>
-      </label>
-      <label class="field">
-        <span class="field-label">掌握度</span>
-        <select id="mastery-select" class="select">
-          <option value="all">全部</option>
-          <option value="unknown">不会</option>
-          <option value="fuzzy">模糊</option>
-          <option value="known">记住了</option>
-          <option value="stub">待补全</option>
-        </select>
-      </label>
-      <div class="field field-progress">
-        <span class="field-label">进度</span>
-        <div id="progress-text" class="progress-text">—</div>
+    <div class="toolbar">
+      <select id="cat-select" class="select" aria-label="分类"></select>
+      <select id="mastery-select" class="select" aria-label="掌握度">
+        <option value="all">全部掌握度</option>
+        <option value="unknown">不会</option>
+        <option value="fuzzy">模糊</option>
+        <option value="known">记住了</option>
+        <option value="stub">待补全</option>
+      </select>
+      <div id="progress" class="progress">0 / 0</div>
+      <div class="toolbar-actions">
+        <button type="button" id="btn-shuffle" class="btn">打乱</button>
+        <button type="button" id="btn-random" class="btn">随机</button>
+        <button type="button" id="btn-prev" class="btn">上一题</button>
+        <button type="button" id="btn-next" class="btn btn-main">下一题</button>
       </div>
     </div>
-    <div class="controls-row controls-actions">
-      <button type="button" id="btn-shuffle" class="btn btn-ghost">随机打乱</button>
-      <button type="button" id="btn-random" class="btn btn-ghost">随机一题</button>
-      <div class="nav-cluster">
-        <button type="button" id="btn-prev" class="btn btn-nav" aria-label="上一题">‹ 上一题</button>
-        <button type="button" id="btn-next" class="btn btn-nav btn-primary" aria-label="下一题">下一题 ›</button>
+
+    <main class="main">
+      <div id="empty" class="empty" hidden>
+        <h2>没有题目</h2>
+        <p>换个分类或掌握度再试</p>
       </div>
-    </div>
-  </section>
 
-  <main class="stage" id="stage">
-    <div class="empty" id="empty" hidden>
-      <p class="empty-title">这个筛选下没有题目</p>
-      <p class="empty-sub">换个分类或掌握度试试</p>
-    </div>
-
-    <div class="deck" id="deck">
-      <div class="card-scene">
-        <div class="flashcard" id="flashcard" data-flipped="false">
-          <div class="face face-front">
-            <div class="face-chrome">
-              <span class="pill" id="front-cat">—</span>
-              <span class="pill pill-mastery" id="front-mastery">—</span>
-              <span class="pill pill-muted" id="front-index">—</span>
-            </div>
-            <div class="face-body">
-              <p class="id-line" id="front-id">#</p>
-              <h2 class="title-line" id="front-title">加载中…</h2>
-              <p class="prompt-line">先自己过一遍思路，再翻面或揭晓</p>
-            </div>
-            <div class="face-footer">
-              <button type="button" class="btn btn-flip" id="btn-flip-front">翻面看思路</button>
-              <span class="hint-keys">Space 翻面 · ← → 切题</span>
-            </div>
+      <article id="card" class="card" data-side="front" hidden>
+        <!-- FRONT -->
+        <div class="side side-front" id="side-front">
+          <div class="meta">
+            <span class="tag" id="front-cat">—</span>
+            <span class="tag tag-m" id="front-mastery">—</span>
+            <span class="tag tag-dim" id="front-pos">—</span>
           </div>
-          <div class="face face-back">
-            <div class="face-chrome">
-              <span class="pill" id="back-cat">—</span>
-              <a class="pill pill-link" id="back-lc" href="#" target="_blank" rel="noopener">LeetCode ↗</a>
-              <button type="button" class="pill pill-btn" id="btn-flip-back">回到正面</button>
+          <div class="front-center">
+            <div class="num" id="front-id">#</div>
+            <h1 class="title" id="front-title">…</h1>
+            <p class="cue">先自己想一遍，再点下方看思路</p>
+          </div>
+          <div class="front-actions">
+            <button type="button" id="btn-show" class="btn-big">看思路与题解</button>
+            <p class="keys">空格揭晓 · ← → 切题 · R 随机</p>
+          </div>
+        </div>
+
+        <!-- BACK -->
+        <div class="side side-back" id="side-back" hidden>
+          <div class="meta">
+            <span class="tag" id="back-cat">—</span>
+            <a class="tag tag-link" id="back-lc" href="#" target="_blank" rel="noopener">打开 LC ↗</a>
+            <button type="button" id="btn-hide" class="tag tag-btn">回到正面</button>
+          </div>
+          <h2 class="back-title" id="back-title">—</h2>
+
+          <section class="panel">
+            <div class="panel-h">
+              <h3>思路要点</h3>
             </div>
-            <div class="face-scroll">
-              <h2 class="back-title" id="back-title">—</h2>
+            <ul id="back-hints" class="list"></ul>
+          </section>
 
-              <section class="block">
-                <header class="block-head">
-                  <h3>思路要点</h3>
-                  <button type="button" class="linkish" id="btn-toggle-hints">收起</button>
-                </header>
-                <ul class="hint-list" id="back-hints"></ul>
-              </section>
+          <section class="panel" id="notes-panel" hidden>
+            <div class="panel-h"><h3>易错 / 补充</h3></div>
+            <ul id="back-notes" class="list list-soft"></ul>
+          </section>
 
-              <section class="block" id="notes-block" hidden>
-                <header class="block-head">
-                  <h3>易错 / 补充</h3>
-                </header>
-                <ul class="note-list" id="back-notes"></ul>
-              </section>
-
-              <section class="block">
-                <header class="block-head">
-                  <h3>题解代码</h3>
-                  <button type="button" class="linkish" id="btn-toggle-code">展开代码</button>
-                </header>
-                <div id="code-panel" class="code-panel" hidden>
-                  <pre class="code-pre"><code class="language-go" id="back-code"></code></pre>
-                </div>
-                <div id="stub-panel" class="stub-panel" hidden>待补全 — 这题笔记里还没有有效代码</div>
-              </section>
+          <section class="panel">
+            <div class="panel-h">
+              <h3>题解代码</h3>
+              <button type="button" id="btn-code" class="text-btn">展开代码</button>
             </div>
-            <div class="face-footer mastery-footer">
-              <span class="mastery-label">掌握度</span>
-              <div class="mastery-btns" id="mastery-btns" role="group" aria-label="掌握度">
-                <button type="button" class="m-btn" data-level="unknown">不会</button>
-                <button type="button" class="m-btn" data-level="fuzzy">模糊</button>
-                <button type="button" class="m-btn" data-level="known">记住了</button>
-              </div>
+            <div id="code-wrap" class="code-wrap" hidden>
+              <pre><code id="back-code" class="language-go"></code></pre>
+            </div>
+            <div id="stub-wrap" class="stub" hidden>待补全 — 笔记里还没有这题的代码</div>
+          </section>
+
+          <div class="mastery-bar">
+            <span>掌握度</span>
+            <div id="mastery-btns" class="m-group">
+              <button type="button" class="m-btn" data-level="unknown">不会</button>
+              <button type="button" class="m-btn" data-level="fuzzy">模糊</button>
+              <button type="button" class="m-btn" data-level="known">记住了</button>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </main>
+      </article>
+    </main>
 
-  <footer class="study-foot">
-    <p>一次只看一题 · 先想再揭 · 掌握度保存在本机</p>
-  </footer>
+    <footer class="foot">一次一题 · 先想再看 · 进度只存在本机浏览器</footer>
+  </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/go.min.js"></script>

@@ -18,7 +18,6 @@
       <h1 class="brand-title">LC Hot 100 速记</h1>
     </div>
     <div class="topbar-tools">
-      <a class="study-entry" href="./study.html" title="一次只看一题的精美卡片">专注刷卡</a>
       <label class="search-wrap" for="search">
         <span class="search-icon" aria-hidden="true">⌕</span>
         <input
@@ -30,11 +29,20 @@
         />
       </label>
       <div id="stats" class="stats" aria-live="polite">—</div>
+      <a class="study-entry" href="./study.html" title="一次只看一题">✦ 专注刷卡</a>
       <button id="theme-toggle" type="button" title="切换主题" aria-label="切换浅色/深色主题">
         <span class="theme-icon" aria-hidden="true">◐</span>
       </button>
     </div>
   </header>
+
+  <a class="study-banner" href="./study.html">
+    <div class="study-banner-text">
+      <strong>专注刷卡模式</strong>
+      <span>一次一题 · 分类 / 随机 / 下一题 · 先想再看思路与代码</span>
+    </div>
+    <span class="study-banner-cta">开始刷卡 →</span>
+  </a>
 
   <div id="cat-chips" class="cat-chips" aria-label="分类（移动端）"></div>
 
@@ -53,6 +61,9 @@
           <button type="button" class="chip" data-filter="known">记住了</button>
           <button type="button" class="chip" data-filter="stub">待补全</button>
         </div>
+      </div>
+      <div class="sidebar-section">
+        <a class="sidebar-study" href="./study.html">✦ 进入专注刷卡</a>
       </div>
     </aside>
 
