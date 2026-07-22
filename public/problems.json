@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-22T03:45:56.179Z",
+  "generatedAt": "2026-07-22T04:06:29.615Z",
   "categories": [
     {
       "name": "哈希",
@@ -97,7 +97,11 @@
       "categoryOrder": 0,
       "code": "func twoSum(nums []int, target int) []int {\n    m := make(map[int]int)\n    for i, num := range nums {\n        if j,ok := m[target-num]; ok {\n            return []int{i, j}\n        }\n        m[num] = i\n    }\n    return nil\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "map 存 值→下标",
+        "对每个 num 先查 target-num",
+        "先查后写避免自配对"
+      ],
       "notes": []
     },
     {
@@ -109,7 +113,11 @@
       "categoryOrder": 0,
       "code": "func groupAnagrams(strs []string) [][]string {\n    m := make(map[string][]string)\n    for _,s := range strs {\n        b := []byte(s) // 转成字节切片,后面排序\n        sort.Slice(b, func(i, j int) bool {\n            return b[i] < b[j]\n        })\n        key := string(b)\n        m[key] = append(m[key], s)\n    }\n    res := make([][]string, 0, len(m))\n    for _,v := range m {\n        res = append(res, v)\n    }\n    return res\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "排序后的串作 key",
+        "map[string][]string 分组",
+        "byte 切片 sort 后转回 string"
+      ],
       "notes": []
     },
     {
@@ -121,7 +129,11 @@
       "categoryOrder": 0,
       "code": "func longestConsecutive(nums []int) int {\n    if len(nums) == 0 {\n        return 0\n    }\n    set := make(map[int]bool)\n    for _, x := range nums {\n        set[x] = true\n    }\n    maxLen := 1\n    for x := range set {\n        if !set[x-1] { // 这里注意是 x-1, 减1是因为如果减1不在当前数才是起点\n            length := 1\n            for set[x+length] {\n                length++\n            }\n            if length > maxLen {\n                maxLen = length\n            }\n        }\n    }\n    return maxLen\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "先入 set 去重",
+        "只从「起点」num-1 不在 set 开始数",
+        "向右连着 ++ 更新最长"
+      ],
       "notes": []
     },
     {
@@ -133,7 +145,11 @@
       "categoryOrder": 1,
       "code": "func maxArea(height []int) int {\n    left, right := 0, len(height)-1\n    maxA := 0\n    for left < right {\n        h := height[left]\n        if height[right] < h {\n            h = height[right]\n        }\n        w := right-left\n        if h*w > maxA {\n            maxA = h*w\n        }\n        if height[left] < height[right] {\n            left++\n        } else {\n            right--\n        }\n    }\n    return maxA\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "左右双指针夹逼",
+        "面积 = min高 × 宽",
+        "矮的一侧先移动"
+      ],
       "notes": []
     },
     {
@@ -145,7 +161,11 @@
       "categoryOrder": 1,
       "code": "func threeSum(nums []int) [][]int {\n    sort.Ints(nums)\n    n := len(nums)\n    res := [][]int{}\n    for i := 0;i < n-2;i++ {\n        if i > 0 && nums[i] == nums[i-1] {\n            continue\n        }\n        left, right := i+1, n-1\n        for left < right {\n            sum := nums[left] + nums[i] + nums[right]\n            if sum == 0 {\n                res = append(res, []int{nums[left], nums[i], nums[right]})\n                for left < right && nums[left] == nums[left+1] {\n                    left++\n                }\n                for left < right && nums[right] == nums[right-1] {\n                    right--\n                }\n                left++\n                right--\n            } else if sum < 0 {\n                left++\n            } else {\n                right--\n            }\n        }\n    }\n    return res\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "先排序",
+        "固定 i + 左右双指针",
+        "i/left/right 三处去重"
+      ],
       "notes": []
     },
     {
@@ -157,7 +177,11 @@
       "categoryOrder": 1,
       "code": "func trap(height []int) int {\n    left, right := 0, len(height)-1\n    ans := 0\n    leftMax, rightMax := 0, 0\n    for left < right {\n        if height[left] < height[right] {\n            if height[left] < leftMax {\n                ans += leftMax - height[left]\n            } else {\n                leftMax = height[left]\n            }\n            left++\n        } else {\n            if height[right] < rightMax {\n                ans += rightMax - height[right]\n            } else {\n                rightMax = height[right]\n            }\n            right--\n        }\n    }\n    return ans\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "左右双指针 + leftMax/rightMax",
+        "矮侧先结算可接雨水",
+        "ans += max侧 - 当前高"
+      ],
       "notes": []
     },
     {
@@ -169,7 +193,11 @@
       "categoryOrder": 1,
       "code": "func moveZeroes(nums []int)  {\n    left := 0\n    for right := 0;right < len(nums);right++ {\n        if nums[right] != 0 {\n            nums[left], nums[right] = nums[right], nums[left]\n            left++\n        }\n    }\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "left 指向下一个非零应放位置",
+        "right 扫到非零就交换",
+        "零自然沉到后面"
+      ],
       "notes": []
     },
     {
@@ -181,7 +209,11 @@
       "categoryOrder": 2,
       "code": "func lengthOfLongestSubstring(s string) int {\n    m := make(map[byte]int)\n    ans := 0\n    left := 0\n    for right := 0;right < len(s);right++ {\n        if idx, ok := m[s[right]];ok && idx >= left {\n            left = idx + 1\n        }\n        m[s[right]] = right\n        if right - left + 1 > ans {\n            ans = right - left + 1\n        }\n    }\n    return ans\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "滑动窗口 + map 记上次下标",
+        "重复且在窗内则 left = idx+1",
+        "ans 取 right-left+1 最大"
+      ],
       "notes": []
     },
     {
@@ -193,7 +225,11 @@
       "categoryOrder": 2,
       "code": "func findAnagrams(s string, p string) []int {\n    if len(s) < len(p) {\n        return nil\n    }\n    need := [26]int{}\n    for i := range p {\n        need[p[i]-'a']++\n    }\n    window := [26]int{}\n    left := 0\n    res := []int{}\n    for right := 0; right < len(s);right++ {\n        window[s[right]-'a']++\n        if right-left+1 == len(p) {\n            if window == need {\n                res = append(res, left)\n            }\n            window[s[left]-'a']--\n            left++\n        }\n    }\n    return res\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "need 记 p 的字符计数",
+        "定长窗口滑 s",
+        "窗内计数全匹配则记起点"
+      ],
       "notes": []
     },
     {
@@ -205,7 +241,11 @@
       "categoryOrder": 3,
       "code": null,
       "status": "stub",
-      "hints": [],
+      "hints": [
+        "need 记 t 各字符次数 + missing 计数",
+        "右扩直到覆盖，再左缩求最短",
+        "valid 时更新 ans 起止"
+      ],
       "notes": []
     },
     {
@@ -217,7 +257,11 @@
       "categoryOrder": 3,
       "code": "func maxSlidingWindow(nums []int, k int) []int {\n    deque := []int{}\n    res := []int{}\n    for i := range nums {\n        // 1. 清理队尾\n        for len(deque) > 0 && nums[deque[len(deque)-1]] < nums[i] {\n            deque = deque[:len(deque)-1]\n        }\n        // 2. 加入当前索引\n        deque = append(deque, i)\n        // 3. 清理队首\n        if deque[0] == i-k {\n            deque = deque[1:]\n        }\n        if i >= k-1 {\n            res = append(res, nums[deque[0]])\n        }\n    }\n    return res\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "单调递减双端队列存下标",
+        "队尾弹更小，队首弹过期",
+        "窗满后队首即当前最大"
+      ],
       "notes": [
         "1. 清理队尾",
         "2. 加入当前索引",
@@ -233,7 +277,11 @@
       "categoryOrder": 3,
       "code": "func subarraySum(nums []int, k int) int {\n    m := make(map[int]int)\n    prefix := 0\n    ans := 0\n    m[0] = 1\n    for _, num := range nums {\n        prefix += num\n        if v, ok := m[prefix-k]; ok {\n            ans += v\n        }\n        m[prefix]++\n    }\n    return ans\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "前缀和 + map 记出现次数",
+        "查 prefix-k 的次数累加",
+        "m[0]=1 处理整段"
+      ],
       "notes": []
     },
     {
@@ -245,7 +293,11 @@
       "categoryOrder": 4,
       "code": "func firstMissingPositive(nums []int) int {\n    n := len(nums)\n    for i := 0;i < n;i++ {\n        // 注意这里是用for 循环，不是if判断一次，是要until\n        for nums[i] > 0 && nums[i] <= n && nums[nums[i]-1] != nums[i] {\n            correctIdx := nums[i] -1\n            nums[i], nums[correctIdx] = nums[correctIdx], nums[i]\n        }\n    }\n    for i := 0;i < n;i++ {\n        if nums[i] != i + 1 {\n            return i + 1\n        }\n    }\n    return n + 1\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "原地把 nums[i] 换到下标 nums[i]-1",
+        "用 for 直到归位（非 if 一次）",
+        "再扫一遍找第一个 nums[i]!=i+1"
+      ],
       "notes": [
         "注意这里是用for 循环，不是if判断一次，是要until"
       ]
@@ -259,7 +311,11 @@
       "categoryOrder": 4,
       "code": "func maxSubArray(nums []int) int {\n    maxSum := nums[0]\n    curSum := nums[0]\n    for i := 1;i < len(nums);i++ {  // 注意是从第二个元素开始因为第一个已经在上面打底赋值了\n        if curSum + nums[i] < nums[i] {\n            curSum = nums[i]\n        } else {\n            curSum += nums[i]\n        }\n        if curSum > maxSum {\n            maxSum = curSum\n        }\n    }\n    return maxSum\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "Kadane：cur = max(num, cur+num)",
+        "maxSum 同步更新",
+        "从第二个元素起扫"
+      ],
       "notes": []
     },
     {
@@ -271,7 +327,11 @@
       "categoryOrder": 4,
       "code": null,
       "status": "stub",
-      "hints": [],
+      "hints": [
+        "按区间起点排序",
+        "能合并则更新 end=max",
+        "不能合并则 push 新区间"
+      ],
       "notes": []
     },
     {
@@ -283,7 +343,11 @@
       "categoryOrder": 4,
       "code": "func rotate(nums []int, k int)  {\n    n := len(nums)\n    if k % n == 0 {\n        return\n    }\n    k = k % n\n    reverse := func(l, r int) {\n        for l < r {\n            nums[l], nums[r] = nums[r], nums[l]\n            l++\n            r--\n        }\n    }\n    reverse(0, n-1)\n    reverse(0, k-1)\n    reverse(k, n-1)\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "k %= n",
+        "整体反转 → 前 k 反转 → 后 n-k 反转",
+        "三次 reverse"
+      ],
       "notes": []
     },
     {
@@ -295,7 +359,11 @@
       "categoryOrder": 4,
       "code": "func productExceptSelf(nums []int) []int {\n    n := len(nums)\n    res := make([]int, n)\n    res[0] = 1\n    for i := 1;i < n;i++ {\n        res[i] = res[i-1]*nums[i-1]\n    }\n    rightProduct := 1\n    for i := n-1;i >= 0;i-- {\n        res[i] *= rightProduct\n        rightProduct *= nums[i]\n    }\n    return res\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "先左前缀积写入 res",
+        "再从右扫 right 积相乘",
+        "O(1) 额外空间（除输出）"
+      ],
       "notes": []
     },
     {
@@ -307,7 +375,11 @@
       "categoryOrder": 5,
       "code": "func rotate(matrix [][]int)  {\n    n := len(matrix)\n    for i := 0;i < n;i++ {\n        for j := i + 1;j < n;j++ {\n            matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]\n        }\n    }\n    for i := 0;i < n;i++ {\n        for j := 0;j < n/2;j++ {\n            matrix[i][n-1-j], matrix[i][j] = matrix[i][j], matrix[i][n-1-j]\n        }\n    }\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "先转置（沿主对角线交换）",
+        "再每行左右翻转",
+        "in-place"
+      ],
       "notes": []
     },
     {
@@ -319,7 +391,11 @@
       "categoryOrder": 5,
       "code": "func spiralOrder(matrix [][]int) []int {\n    m,n := len(matrix), len(matrix[0])\n    ans := make([]int, 0, m*n)\n    top, bottom, left, right := 0, m-1, 0, n-1\n    for top <= bottom && left <= right {\n        for i := left;i <= right;i++ {\n            ans = append(ans, matrix[top][i])\n        }\n        top++\n        for i := top;i <= bottom;i++ {\n            ans = append(ans, matrix[i][right])\n        }\n        right--\n        if top <= bottom {\n            for i := right;i >= left;i-- {\n                ans = append(ans, matrix[bottom][i])\n            }\n            bottom--\n        }\n        if left <= right {\n            for i := bottom;i >= top;i-- {\n                ans = append(ans, matrix[i][left])\n            }\n            left++\n        }\n    }\n    return ans\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "上下左右四边界收缩",
+        "依次 →↓←↑ 填 ans",
+        "注意单行/单列边界判断"
+      ],
       "notes": []
     },
     {
@@ -331,7 +407,11 @@
       "categoryOrder": 5,
       "code": "func setZeroes(matrix [][]int)  {\n    // 1. 先处理第一行和第一列的问题，因为这两者本身要作为标记\n    m, n := len(matrix), len(matrix[0])\n    row0, col0 := false, false\n    for j := 0;j < n;j++ {\n        if matrix[0][j] == 0 {\n            row0 = true\n            break\n        }\n    }\n    for i := 0;i < m;i++ {\n        if matrix[i][0] == 0 {\n            col0 = true\n            break\n        }\n    }\n    for i := 1;i < m;i++ {\n        for j := 1;j < n;j++ {\n            if matrix[i][j] == 0 {\n                matrix[0][j] = 0\n                matrix[i][0] = 0\n            }\n        }\n    }\n    for i := 1;i < m;i++ {\n        for j := 1;j < n;j++ {\n            if matrix[i][0] == 0 || matrix[0][j] == 0 {\n                matrix[i][j] = 0\n            }\n        }\n    }\n    if row0 {\n        for i := 0;i < n;i++ {\n            matrix[0][i] = 0\n        }\n    }\n    if col0 {\n        for i := 0;i < m;i++ {\n            matrix[i][0] = 0\n        }\n    }\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "用第一行/列作标记位",
+        "先记 row0/col0 自身是否有零",
+        "最后再清第一行与第一列"
+      ],
       "notes": [
         "1. 先处理第一行和第一列的问题，因为这两者本身要作为标记"
       ]
@@ -345,7 +425,11 @@
       "categoryOrder": 5,
       "code": "func searchMatrix(matrix [][]int, target int) bool {\n    m, n := len(matrix), len(matrix[0])\n    \n    row, col := 0, n-1\n    \n    for row < m && col >= 0 {\n        cur := matrix[row][col]\n        if cur == target {\n            return true\n        } else if cur < target {\n            row++\n        } else {\n            col--\n        }\n    }\n    return false\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "从右上角出发",
+        "大了向左，小了向下",
+        "O(m+n)"
+      ],
       "notes": []
     },
     {
@@ -357,7 +441,11 @@
       "categoryOrder": 6,
       "code": "/**\n * Definition for singly-linked list.\n * type ListNode struct {\n *     Val int\n *     Next *ListNode\n * }\n */\nfunc addTwoNumbers(l1 *ListNode, l2 *ListNode) *ListNode {\n    dummy := &ListNode{}\n    cur := dummy\n    carry := 0\n    for l1 != nil || l2 != nil || carry != 0 {\n        var v1, v2 int\n        if l1 != nil {\n            v1 = l1.Val\n            l1 = l1.Next\n        }\n        if l2 != nil {\n            v2 = l2.Val\n            l2 = l2.Next\n        }\n        sum := v1 + v2 + carry\n        carry = sum / 10\n        cur.Next = &ListNode{Val: sum % 10}\n        cur = cur.Next\n    }\n    return dummy.Next\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "模拟竖式加法 + carry",
+        "两链表并行推进",
+        "末尾别忘最后一位进位"
+      ],
       "notes": []
     },
     {
@@ -369,7 +457,11 @@
       "categoryOrder": 6,
       "code": "/**\n * Definition for singly-linked list.\n * type ListNode struct {\n *     Val int\n *     Next *ListNode\n * }\n */\nfunc removeNthFromEnd(head *ListNode, n int) *ListNode {\n    dummy := &ListNode{Next: head}\n    slow, fast := dummy, dummy\n    for i := 0;i <= n;i++ {\n        fast = fast.Next\n    }\n    for fast != nil {\n        slow = slow.Next\n        fast = fast.Next\n    }\n    slow.Next = slow.Next.Next\n    return dummy.Next\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "dummy + 快慢指针",
+        "快先走 n 步",
+        "同步走后慢的 next 即待删"
+      ],
       "notes": []
     },
     {
@@ -381,7 +473,11 @@
       "categoryOrder": 6,
       "code": "/**\n * Definition for singly-linked list.\n * type ListNode struct {\n *     Val int\n *     Next *ListNode\n * }\n */\nfunc mergeTwoLists(list1 *ListNode, list2 *ListNode) *ListNode {\n    dummy := &ListNode{}\n    cur := dummy\n    for list1 != nil && list2 != nil {\n        if list1.Val < list2.Val {\n            cur.Next = list1\n            list1 = list1.Next\n        } else {\n            cur.Next = list2\n            list2 = list2.Next\n        }\n        cur = cur.Next\n    }\n    if list1 != nil {\n        cur.Next = list1\n    } else {\n        cur.Next = list2\n    }\n    return dummy.Next\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "dummy 串联",
+        "比较两头取较小",
+        "剩余整段接上"
+      ],
       "notes": []
     },
     {
@@ -393,7 +489,11 @@
       "categoryOrder": 6,
       "code": "/**\n * Definition for singly-linked list.\n * type ListNode struct {\n *     Val int\n *     Next *ListNode\n * }\n */\ntype MinHeap []*ListNode\nfunc (h MinHeap) Len() int {return len(h)}\nfunc (h MinHeap) Less(i, j int) bool {\n    return h[i].Val < h[j].Val\n}\nfunc (h MinHeap) Swap(i, j int) {\n    h[i], h[j] = h[j], h[i]\n}\nfunc (h *MinHeap) Push(x interface{}) {\n    *h = append(*h, x.(*ListNode))\n}\nfunc (h * MinHeap) Pop() interface{} {\n    old := *h\n    n := len(old)\n    x := old[n-1]\n    *h = old[:n-1]\n    return x\n}\n\nfunc mergeKLists(lists []*ListNode) *ListNode {\n    h := &MinHeap{}\n    heap.Init(h)\n    for _, node := range lists {\n        if node != nil {\n            heap.Push(h, node)\n        }\n    }\n    dummy := &ListNode{}\n    cur := dummy\n    for h.Len() > 0 {\n        node := heap.Pop(h).(*ListNode)\n        cur.Next = node\n        cur = cur.Next\n        if node.Next != nil {\n            heap.Push(h, node.Next)\n        }\n    }\n    return dummy.Next\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "小顶堆（按 Val）",
+        "弹出最小，有 Next 再入堆",
+        "或分治两两合并"
+      ],
       "notes": []
     },
     {
@@ -405,7 +505,11 @@
       "categoryOrder": 6,
       "code": "/**\n * Definition for singly-linked list.\n * type ListNode struct {\n *     Val int\n *     Next *ListNode\n * }\n */\nfunc swapPairs(head *ListNode) *ListNode {\n    dummy := &ListNode{Next: head}\n    cur := dummy\n    for cur.Next != nil && cur.Next.Next != nil {\n        node1 := cur.Next\n        node2 := cur.Next.Next\n        cur.Next = node2\n        node1.Next = node2.Next\n        node2.Next = node1\n\n        cur = node1\n    }\n    return dummy.Next\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "dummy + 两两一组",
+        "改三条边：pre→b→a→next",
+        "pre 移到 a 继续"
+      ],
       "notes": []
     },
     {
@@ -417,7 +521,11 @@
       "categoryOrder": 6,
       "code": "/**\n * Definition for singly-linked list.\n * type ListNode struct {\n *     Val int\n *     Next *ListNode\n * }\n */\nfunc reverseKGroup(head *ListNode, k int) *ListNode {\n    dummy := &ListNode{Next: head}\n    prevGroupTail := dummy\n    for {\n        // 1. 检查是否有k个，没有的话可以直接return\n        tail := prevGroupTail\n        for i := 0;i < k;i++ {\n            tail = tail.Next\n            if tail == nil {\n                return dummy.Next\n            }\n        }\n        // 2. 记录好当前组和下一组的头节点\n        groupHead := prevGroupTail.Next\n        nextGroupHead := tail.Next\n        // 3. 开始翻转k个节点\n        prev, cur := nextGroupHead, groupHead\n        for cur != nextGroupHead {\n            next := cur.Next\n            cur.Next = prev\n            prev = cur\n            cur = next\n        }\n        // 连接前后两组并更新为下一组做好准备\n        prevGroupTail.Next = prev\n        prevGroupTail = groupHead\n    }\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "先检查够不够 k 个",
+        "记录组头/下一组头后翻转 k 个",
+        "接前后组并推进"
+      ],
       "notes": [
         "1. 检查是否有k个，没有的话可以直接return",
         "2. 记录好当前组和下一组的头节点",
@@ -434,7 +542,11 @@
       "categoryOrder": 6,
       "code": "/**\n * Definition for a Node.\n * type Node struct {\n *     Val int\n *     Next *Node\n *     Random *Node\n * }\n */\n\nfunc copyRandomList(head *Node) *Node {\n    if head == nil {\n        return nil\n    }\n    cur := head\n    for cur != nil {\n        newNode := &Node{Val: cur.Val, Next: cur.Next}\n        cur.Next = newNode\n        cur = newNode.Next\n    }\n    cur = head\n    for cur != nil {\n        if cur.Random != nil {\n            cur.Next.Random = cur.Random.Next\n        }\n        cur = cur.Next.Next\n    }\n    dummy := &Node{}\n    cloneCur := dummy\n    cur = head\n    for cur != nil {\n        cloneCur.Next = cur.Next\n        cloneCur = cloneCur.Next\n        cur.Next = cloneCur.Next\n        cur = cur.Next\n    }\n    return dummy.Next\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "map 旧→新 节点",
+        "第一遍建节点，第二遍连 next/random",
+        "或原地交错再拆分"
+      ],
       "notes": []
     },
     {
@@ -446,7 +558,11 @@
       "categoryOrder": 6,
       "code": "/**\n * Definition for singly-linked list.\n * type ListNode struct {\n *     Val int\n *     Next *ListNode\n * }\n */\nfunc hasCycle(head *ListNode) bool {\n    slow, fast := head, head\n    for fast != nil && fast.Next != nil {\n        slow = slow.Next\n        fast = fast.Next.Next\n        if slow == fast {\n            return true\n        }\n    }\n    return false\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "快慢指针",
+        "快两步慢一步",
+        "相遇即有环"
+      ],
       "notes": []
     },
     {
@@ -458,7 +574,11 @@
       "categoryOrder": 6,
       "code": "/**\n * Definition for singly-linked list.\n * type ListNode struct {\n *     Val int\n *     Next *ListNode\n * }\n */\nfunc detectCycle(head *ListNode) *ListNode {\n    slow, fast := head, head\n    for fast != nil && fast.Next != nil {\n        slow = slow.Next\n        fast = fast.Next.Next\n        if slow == fast {\n            p1, p2 := head, slow\n            for p1 != p2 {\n                p1 = p1.Next\n                p2 = p2.Next\n            }\n            return p1\n        }\n    }\n    return nil\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "快慢相遇后",
+        "一指针回 head，同步各一步",
+        "再遇即环入口"
+      ],
       "notes": []
     },
     {
@@ -470,7 +590,11 @@
       "categoryOrder": 6,
       "code": "type Node struct {\n    key, val int\n    prev, next *Node\n}\n\ntype LRUCache struct {\n    capacity int\n    cache map[int]*Node\n    head, tail *Node\n}\n\nfunc Constructor(capacity int) LRUCache {\n    head, tail := &Node{}, &Node{}\n    head.next = tail\n    tail.prev = head\n    return LRUCache {\n        capacity: capacity,\n        cache: make(map[int]*Node),\n        head: head,\n        tail: tail,\n    }\n}\n\nfunc (this *LRUCache) removeNode(node *Node) {\n    node.prev.next = node.next\n    node.next.prev = node.prev\n}\n\nfunc (this *LRUCache) addToHead(node *Node) {\n    node.next = this.head.next\n    node.prev = this.head\n    this.head.next.prev = node\n    this.head.next = node\n}\n\nfunc (this *LRUCache) moveToHead(node *Node) {\n    this.removeNode(node)\n    this.addToHead(node)\n}\n\nfunc (this *LRUCache) Get(key int) int {\n    if node, ok := this.cache[key]; ok {\n        this.moveToHead(node)\n        return node.val\n    }\n    return -1\n}\n\nfunc (this *LRUCache) Put(key int, value int)  {\n    if node, ok := this.cache[key]; ok {\n        node.val = value\n        this.moveToHead(node)\n    } else {\n        newNode := &Node{key: key, val: value}\n        this.addToHead(newNode)\n        this.cache[key] = newNode\n        // 考虑是否超出容量限制，移除最少使用的尾部\n        if len(this.cache) > this.capacity {\n            tail := this.tail.prev\n            this.removeNode(tail)\n            delete(this.cache, tail.key)\n        }\n    }\n}\n\n/**\n * Your LRUCache object will be instantiated and called as such:\n * obj := Constructor(capacity);\n * param_1 := obj.Get(key);\n * obj.Put(key,value);\n */",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "哈希 + 双向链表",
+        "get/put 都移到头（最近用）",
+        "超容删尾部"
+      ],
       "notes": [
         "考虑是否超出容量限制，移除最少使用的尾部"
       ]
@@ -484,7 +608,11 @@
       "categoryOrder": 6,
       "code": "/**\n * Definition for singly-linked list.\n * type ListNode struct {\n *     Val int\n *     Next *ListNode\n * }\n */\nfunc sortList(head *ListNode) *ListNode {\n    if head == nil || head.Next == nil {\n        return head\n    }\n    slow, fast := head, head\n    var prev *ListNode\n    for fast != nil && fast.Next != nil {\n        prev = slow\n        slow = slow.Next\n        fast = fast.Next.Next\n    }\n    prev.Next = nil\n    left := sortList(head)\n    right := sortList(slow)\n    return mergeTwoLists(left, right)\n}\nfunc mergeTwoLists(l1, l2 *ListNode) *ListNode {\n    dummy := &ListNode{}\n    cur := dummy\n    for l1 != nil && l2 != nil {\n        if l1.Val < l2.Val {\n            cur.Next = l1\n            l1 = l1.Next\n        } else {\n            cur.Next = l2\n            l2 = l2.Next\n        }\n        cur = cur.Next\n    }\n    if l1 != nil {\n        cur.Next = l1\n    } else {\n        cur.Next = l2\n    }\n    return dummy.Next\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "归并：快慢找中点拆半",
+        "递归 sort 左右",
+        "再 merge 两条有序链"
+      ],
       "notes": []
     },
     {
@@ -496,7 +624,11 @@
       "categoryOrder": 6,
       "code": "/**\n * Definition for singly-linked list.\n * type ListNode struct {\n *     Val int\n *     Next *ListNode\n * }\n */\nfunc getIntersectionNode(headA, headB *ListNode) *ListNode {\n    if headA == nil || headB == nil {\n        return nil\n    }\n    a, b := headA, headB\n    for a != b {\n        // 注意这里两个if判断不是.Next是否为nil，是当前节点是否为nil，否则二者的总路程会不一样\n        if a != nil {\n            a = a.Next\n        } else {\n            a = headB\n        }\n        if b != nil {\n            b = b.Next\n        } else {\n            b = headA\n        }\n    }\n    return a\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "双指针走完跳到另一头",
+        "总路程相同必在交点或 nil 相遇",
+        "判 nil 用当前节点非 Next"
+      ],
       "notes": [
         "注意这里两个if判断不是.Next是否为nil，是当前节点是否为nil，否则二者的总路程会不一样"
       ]
@@ -510,7 +642,11 @@
       "categoryOrder": 6,
       "code": "/**\n * Definition for singly-linked list.\n * type ListNode struct {\n *     Val int\n *     Next *ListNode\n * }\n */\nfunc reverseList(head *ListNode) *ListNode {\n    var pre *ListNode\n    cur := head\n    for cur != nil {\n        next := cur.Next\n        cur.Next = pre\n        pre = cur\n        cur = next\n    }\n    return pre\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "prev/cur 迭代反转",
+        "next 暂存后 cur.Next=prev",
+        "推进 prev=cur"
+      ],
       "notes": []
     },
     {
@@ -522,7 +658,11 @@
       "categoryOrder": 6,
       "code": "/**\n * Definition for singly-linked list.\n * type ListNode struct {\n *     Val int\n *     Next *ListNode\n * }\n */\nfunc isPalindrome(head *ListNode) bool {\n    slow, fast := head, head\n    for fast != nil && fast.Next != nil {\n        slow = slow.Next\n        fast = fast.Next.Next\n    }\n    var p *ListNode\n    cur := slow\n    for cur != nil {\n        next := cur.Next\n        cur.Next = p\n        p = cur\n        cur = next\n    }\n    second := p\n    ahead := head\n    for second != nil {\n        if ahead.Val != second.Val {\n            return false\n        }\n        ahead = ahead.Next\n        second = second.Next\n    }\n    return true\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "快慢找中点",
+        "反转后半段",
+        "前后逐一比对"
+      ],
       "notes": []
     },
     {
@@ -534,7 +674,11 @@
       "categoryOrder": 7,
       "code": "/**\n * Definition for a binary tree node.\n * type TreeNode struct {\n *     Val int\n *     Left *TreeNode\n *     Right *TreeNode\n * }\n */\nfunc inorderTraversal(root *TreeNode) []int {\n    res := []int{}\n    var inorder func(node *TreeNode)\n    inorder = func(node *TreeNode) {\n        if node == nil {\n            return\n        }\n        inorder(node.Left)\n        res = append(res, node.Val)\n        inorder(node.Right)\n    }\n    inorder(root)\n    return res\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "中序：左-根-右",
+        "栈模拟或递归",
+        "一路压左，弹后走右"
+      ],
       "notes": []
     },
     {
@@ -546,7 +690,11 @@
       "categoryOrder": 7,
       "code": "/**\n * Definition for a binary tree node.\n * type TreeNode struct {\n *     Val int\n *     Left *TreeNode\n *     Right *TreeNode\n * }\n */\nfunc isValidBST(root *TreeNode) bool {\n    return validate(root, math.MinInt64, math.MaxInt64)\n}\nfunc validate(root *TreeNode, min, max int) bool {\n    if root == nil {\n        return true\n    }\n    if root.Val <= min || root.Val >= max {\n        return false\n    }\n    return validate(root.Left, min, root.Val) && validate(root.Right, root.Val, max)\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "中序应严格递增",
+        "或递归带 (min,max) 区间",
+        "左 < 根 < 右 全局约束"
+      ],
       "notes": []
     },
     {
@@ -558,7 +706,11 @@
       "categoryOrder": 7,
       "code": "/**\n * Definition for a binary tree node.\n * type TreeNode struct {\n *     Val int\n *     Left *TreeNode\n *     Right *TreeNode\n * }\n */\nfunc isSymmetric(root *TreeNode) bool {\n    if root == nil {\n        return true\n    }\n    return isMirror(root.Left, root.Right)\n}\nfunc isMirror(p, q *TreeNode) bool {\n    if p == nil && q == nil {\n        return true\n    }\n    if p == nil || q == nil {\n        return false\n    }\n    return p.Val == q.Val && isMirror(p.Left, q.Right) && isMirror(p.Right, q.Left)\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "对称：左.左 vs 右.右，左.右 vs 右.左",
+        "递归或队列两两入队",
+        "值相等且结构镜像"
+      ],
       "notes": []
     },
     {
@@ -570,7 +722,11 @@
       "categoryOrder": 7,
       "code": "/**\n * Definition for a binary tree node.\n * type TreeNode struct {\n *     Val int\n *     Left *TreeNode\n *     Right *TreeNode\n * }\n */\nfunc levelOrder(root *TreeNode) [][]int {\n    res := [][]int{}\n    if root == nil {\n        return res\n    }\n    queue := []*TreeNode{root}\n    for len(queue) > 0 {\n        levelSize := len(queue)\n        levelVal := []int{}\n        for i := 0;i < levelSize;i++ {\n            node := queue[0]\n            queue = queue[1:]\n            levelVal = append(levelVal, node.Val)\n            if node.Left != nil {\n                queue = append(queue, node.Left)\n            }\n            if node.Right != nil {\n                queue = append(queue, node.Right)\n            }\n        }\n        res = append(res, levelVal)\n    }\n    return res\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "BFS 队列",
+        "按层 size 循环",
+        "每层收集一层结果"
+      ],
       "notes": []
     },
     {
@@ -582,7 +738,11 @@
       "categoryOrder": 7,
       "code": "/**\n * Definition for a binary tree node.\n * type TreeNode struct {\n *     Val int\n *     Left *TreeNode\n *     Right *TreeNode\n * }\n */\nfunc maxDepth(root *TreeNode) int {\n    if root == nil {\n        return 0\n    }\n    leftD := maxDepth(root.Left)\n    rightD := maxDepth(root.Right)\n    if leftD < rightD {\n        return rightD + 1\n    }\n    return leftD + 1\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "maxDepth = 1 + max(左,右)",
+        "空树 0",
+        "递归或层序"
+      ],
       "notes": []
     },
     {
@@ -594,7 +754,11 @@
       "categoryOrder": 7,
       "code": "/**\n * Definition for a binary tree node.\n * type TreeNode struct {\n *     Val int\n *     Left *TreeNode\n *     Right *TreeNode\n * }\n */\nfunc buildTree(preorder []int, inorder []int) *TreeNode {\n    inPos := make(map[int]int, len(inorder))\n    for i, v := range inorder {\n        inPos[v] = i\n    }\n    var build func(preL, preR, inL, inR int) *TreeNode\n    build = func(preL, preR, inL, inR int) *TreeNode {\n        if preL > preR {\n            return nil\n        }\n        rootVal := preorder[preL]\n        root := &TreeNode{Val: rootVal}\n        rootIdx := inPos[rootVal]\n        leftSize := rootIdx - inL // 注意这里是减去inL\n        root.Left = build(preL + 1, preL + leftSize, inL, rootIdx - 1)\n        root.Right = build(preL + leftSize + 1, preR, rootIdx + 1, inR)\n        return root\n    }\n    node := build(0, len(preorder)-1, 0, len(inorder)-1)\n    return node\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "前序首元素是根",
+        "中序根左右分界",
+        "递归建左子树再右子树"
+      ],
       "notes": []
     },
     {
@@ -606,7 +770,11 @@
       "categoryOrder": 7,
       "code": "/**\n * Definition for a binary tree node.\n * type TreeNode struct {\n *     Val int\n *     Left *TreeNode\n *     Right *TreeNode\n * }\n */\nfunc sortedArrayToBST(nums []int) *TreeNode {\n    var build func(left, right int) *TreeNode\n    build = func(left, right int) *TreeNode {\n        if left > right {\n            return nil\n        }\n        mid := (left + right) / 2\n        root := &TreeNode{Val: nums[mid]}\n        root.Left = build(left, mid - 1)\n        root.Right = build(mid + 1, right)\n        return root\n    }\n    return build(0, len(nums)-1)\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "取中点作根保平衡",
+        "左半建左、右半建右",
+        "递归"
+      ],
       "notes": []
     },
     {
@@ -618,7 +786,11 @@
       "categoryOrder": 7,
       "code": "/**\n * Definition for a binary tree node.\n * type TreeNode struct {\n *     Val int\n *     Left *TreeNode\n *     Right *TreeNode\n * }\n */\nfunc flatten(root *TreeNode)  {\n    cur := root\n    for cur != nil {\n        if cur.Left != nil {\n            pre := cur.Left\n            for pre.Right != nil {// 注意这里条件是pre.Right\n                pre = pre.Right\n            }\n            pre.Right = cur.Right\n            cur.Right = cur.Left\n            cur.Left = nil\n        }\n        cur = cur.Right\n    }\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "先序：根-左-右 顺序接成链",
+        "或后序先展左右再接",
+        "左置空右连下一"
+      ],
       "notes": []
     },
     {
@@ -630,7 +802,11 @@
       "categoryOrder": 7,
       "code": "/**\n * Definition for a binary tree node.\n * type TreeNode struct {\n *     Val int\n *     Left *TreeNode\n *     Right *TreeNode\n * }\n */\nfunc maxPathSum(root *TreeNode) int {\n    maxSum := math.MinInt32\n    var maxGain func(node *TreeNode) int\n    maxGain = func(node *TreeNode) int {\n        if node == nil {\n            return 0\n        }\n        leftGain := max(maxGain(node.Left), 0) // 避免负数拉低收益\n        rightGain  := max(maxGain(node.Right), 0)\n        curMaxPath := node.Val + leftGain + rightGain\n        if(curMaxPath > maxSum) {\n            maxSum = curMaxPath\n        }\n        return node.Val + max(leftGain, rightGain)\n    }\n    maxGain(root)\n    return maxSum\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "后序：贡献 max(0, 单侧路径)",
+        "路径和 = 左+右+根 更新全局",
+        "返回只能选一侧"
+      ],
       "notes": []
     },
     {
@@ -642,7 +818,10 @@
       "categoryOrder": 7,
       "code": "/**\n * Definition for a binary tree node.\n * type TreeNode struct {\n *     Val int\n *     Left *TreeNode\n *     Right *TreeNode\n * }\n */\nfunc rightSideView(root *TreeNode) []int {\n    res := []int{}\n    var dfs func(node *TreeNode, depth int)\n    dfs = func(node *TreeNode, depth int) {\n        if node == nil {\n            return\n        }\n        if depth == len(res) {\n            res = append(res, node.Val)\n        }\n        dfs(node.Right, depth + 1)\n        dfs(node.Left, depth + 1)\n    }\n    dfs(root, 0)\n    return res\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "层序每层最后一个",
+        "或 DFS 优先右子，深度首次访问即右视图"
+      ],
       "notes": []
     },
     {
@@ -654,7 +833,11 @@
       "categoryOrder": 7,
       "code": "/**\n * Definition for a binary tree node.\n * type TreeNode struct {\n *     Val int\n *     Left *TreeNode\n *     Right *TreeNode\n * }\n */\nfunc invertTree(root *TreeNode) *TreeNode {\n    if root == nil {\n        return nil\n    }\n    root.Left, root.Right = root.Right, root.Left\n    invertTree(root.Left)\n    invertTree(root.Right)\n    return root\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "交换左右子树",
+        "递归翻转左右",
+        "空返回"
+      ],
       "notes": []
     },
     {
@@ -666,7 +849,11 @@
       "categoryOrder": 7,
       "code": "/**\n * Definition for a binary tree node.\n * type TreeNode struct {\n *     Val int\n *     Left *TreeNode\n *     Right *TreeNode\n * }\n */\nfunc kthSmallest(root *TreeNode, k int) int {\n    stack := []*TreeNode{}\n    cur := root\n    for {\n        for cur != nil {\n            stack = append(stack, cur)\n            cur = cur.Left\n        }\n        cur = stack[len(stack)-1]\n        stack = stack[:len(stack)-1]\n        k--\n        if k==0 {\n            return cur.Val\n        }\n        cur = cur.Right\n    }\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "BST 中序即升序",
+        "中序第 k 个",
+        "栈迭代可早停"
+      ],
       "notes": []
     },
     {
@@ -678,7 +865,11 @@
       "categoryOrder": 7,
       "code": "/**\n * Definition for a binary tree node.\n * type TreeNode struct {\n *     Val int\n *     Left *TreeNode\n *     Right *TreeNode\n * }\n */\nfunc lowestCommonAncestor(root, p, q *TreeNode) *TreeNode {\n  if root == nil || root == p || root == q {\n    return root\n  }\n  left := lowestCommonAncestor(root.Left, p, q)\n  right := lowestCommonAncestor(root.Right, p, q)\n  if left != nil && right != nil {\n    return root\n  }\n  if left != nil {\n    return left\n  }\n  return right\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "后序：左右找 p/q",
+        "左右都非空则当前为 LCA",
+        "只一侧有则返回该侧"
+      ],
       "notes": []
     },
     {
@@ -690,7 +881,11 @@
       "categoryOrder": 7,
       "code": "/**\n * Definition for a binary tree node.\n * type TreeNode struct {\n *     Val int\n *     Left *TreeNode\n *     Right *TreeNode\n * }\n */\nfunc pathSum(root *TreeNode, targetSum int) int {\n    prefixMap := map[int]int{0: 1}\n    return dfs(root, targetSum, 0, prefixMap)\n}\nfunc dfs(node *TreeNode, target, curSum int, prefixMap map[int]int) int {\n    if node == nil {\n        return 0\n    }\n    curSum += node.Val\n    count := prefixMap[curSum - target]\n    prefixMap[curSum]++\n    count += dfs(node.Left, target, curSum, prefixMap)\n    count += dfs(node.Right, target, curSum, prefixMap)\n    // 注意要恢复现场回溯\n    prefixMap[curSum]--\n    return count\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "前缀和 + 回溯恢复",
+        "查 prefix-target 次数",
+        "离开节点时 map 减回"
+      ],
       "notes": [
         "注意要恢复现场回溯"
       ]
@@ -704,7 +899,11 @@
       "categoryOrder": 7,
       "code": "/**\n * Definition for a binary tree node.\n * type TreeNode struct {\n *     Val int\n *     Left *TreeNode\n *     Right *TreeNode\n * }\n */\nfunc diameterOfBinaryTree(root *TreeNode) int {\n    maxDiameter := 0\n    var depth func(node *TreeNode) int \n    depth = func(node *TreeNode) int {\n        if node == nil {\n            return 0\n        }\n        leftDepth := depth(node.Left)\n        rightDepth := depth(node.Right)\n        if leftDepth + rightDepth > maxDiameter {\n            maxDiameter = leftDepth + rightDepth\n        }\n        if leftDepth > rightDepth {\n            return leftDepth + 1\n        }\n        return rightDepth + 1\n    }\n    depth(root)\n    return maxDiameter\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "直径 = 左深+右深 取 max",
+        "递归返回深度",
+        "全局更新 max"
+      ],
       "notes": []
     },
     {
@@ -716,7 +915,11 @@
       "categoryOrder": 8,
       "code": "func numIslands(grid [][]byte) int {\n    m, n := len(grid), len(grid[0])\n    if m == 0 || n == 0 {\n        return 0\n    }\n    count := 0\n    var dfs func(i, j int)\n    dfs = func(i, j int) {\n        if i < 0 || i >= m || j < 0 || j >= n || grid[i][j] != '1' {\n            return\n        }\n        grid[i][j] = '0'\n        dfs(i + 1, j)\n        dfs(i - 1, j)\n        dfs(i, j + 1)\n        dfs(i, j - 1)\n    }\n    for i := 0;i < m;i++ {\n        for j := 0;j < n;j++ {\n            if grid[i][j] == '1' {\n                count++\n                dfs(i, j)\n            }\n        }\n    }\n    return count\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "遇 '1' 计数并 DFS/BFS 沉岛",
+        "四方向标记访问",
+        "改 '0' 或 visited"
+      ],
       "notes": []
     },
     {
@@ -728,7 +931,11 @@
       "categoryOrder": 8,
       "code": "func canFinish(numCourses int, prerequisites [][]int) bool {\n    // 构建邻接表和入度数组\n    adj := make([][]int, numCourses)\n    inDegree := make([]int, numCourses)\n    for _, p := range prerequisites {\n        course, prereq := p[0], p[1]\n        adj[prereq] = append(adj[prereq], course)\n        inDegree[course]++\n    }\n    queue := []int{}\n    for i := 0;i < numCourses;i++ {\n        if inDegree[i] == 0 {\n            queue = append(queue, i)\n        }\n    }\n    count := 0\n    for len(queue) > 0 {\n        count++\n        cur := queue[0]\n        queue = queue[1:]\n        for _, next := range adj[cur] {\n            inDegree[next]--\n            if inDegree[next] == 0 {\n                queue = append(queue, next)\n            }\n        }\n    }\n    return count == numCourses\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "拓扑：邻接表 + 入度",
+        "入度 0 入队 BFS",
+        "学完数 == 课程数则可行"
+      ],
       "notes": [
         "构建邻接表和入度数组"
       ]
@@ -742,7 +949,11 @@
       "categoryOrder": 8,
       "code": "type Trie struct {\n    root *TrieNode\n}\n\ntype TrieNode struct {\n    children [26]*TrieNode\n    isEnd bool\n}\n\nfunc Constructor() Trie {\n    return Trie{root: &TrieNode{}}\n}\n\nfunc (this *Trie) Insert(word string)  {\n    node := this.root\n    for _, ch := range word {\n        idx := ch - 'a'\n        if node.children[idx] == nil {\n            node.children[idx] = &TrieNode{}\n        }\n        node = node.children[idx]\n    }\n    node.isEnd = true\n}\n\nfunc (this *Trie) Search(word string) bool {\n    node := this.root\n    for _, ch := range word {\n        idx := ch - 'a'\n        if node.children[idx] == nil {\n            return false\n        }\n        node = node.children[idx]\n    }\n    return node.isEnd\n}\n\nfunc (this *Trie) StartsWith(prefix string) bool {\n    node := this.root\n    for _, ch := range prefix {\n        idx := ch - 'a'\n        if node.children[idx] == nil {\n            return false\n        }\n        node = node.children[idx]\n    }\n    return true\n}\n\n/**\n * Your Trie object will be instantiated and called as such:\n * obj := Constructor();\n * obj.Insert(word);\n * param_2 := obj.Search(word);\n * param_3 := obj.StartsWith(prefix);\n */",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "节点 children[26] + isEnd",
+        "insert 沿路建",
+        "search/prefix 沿路查"
+      ],
       "notes": []
     },
     {
@@ -754,7 +965,11 @@
       "categoryOrder": 8,
       "code": "func orangesRotting(grid [][]int) int {\n    m, n := len(grid), len(grid[0])\n    freshCount := 0\n    minutes := 0\n    queue := [][]int{}\n    for i := 0; i < m; i++ {\n        for j := 0; j < n; j ++ {\n            if grid[i][j] == 1 {\n                freshCount++\n            } else if grid[i][j] == 2 {\n                queue = append(queue, []int{i, j})\n            }\n        }\n    }\n    if freshCount == 0 {\n        return 0\n    }\n    dirs := [][]int{{-1, 0}, {1, 0}, {0,1}, {0, -1}}\n    for len(queue) > 0 {\n        minutes++\n\n        size := len(queue)\n        for i := 0;i < size;i++ {\n            cur := queue[0]\n            queue = queue[1:]\n            for _, dir := range dirs {\n                nx, ny := cur[0] + dir[0], cur[1] + dir[1]\n                if nx >= 0 && nx < m && ny >= 0 && ny < n && grid[nx][ny] == 1 {\n                    freshCount--\n                    grid[nx][ny] = 2\n                    queue = append(queue, []int{nx, ny})\n                }\n            }\n        }\n        if freshCount == 0 {\n            return minutes\n        }\n    }\n    return -1\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "多源 BFS：坏橙入队",
+        "按层扩散计分钟",
+        "最后仍有鲜橙则 -1"
+      ],
       "notes": []
     },
     {
@@ -766,7 +981,11 @@
       "categoryOrder": 9,
       "code": null,
       "status": "stub",
-      "hints": [],
+      "hints": [
+        "digit→字母表映射",
+        "回溯逐位选字母",
+        "path 满 digits 长度收录"
+      ],
       "notes": []
     },
     {
@@ -778,7 +997,11 @@
       "categoryOrder": 9,
       "code": null,
       "status": "stub",
-      "hints": [],
+      "hints": [
+        "剩余左/右括号计数",
+        "左可放则放左，右<左已用才放右",
+        "左右用尽收录"
+      ],
       "notes": []
     },
     {
@@ -790,7 +1013,11 @@
       "categoryOrder": 9,
       "code": null,
       "status": "stub",
-      "hints": [],
+      "hints": [
+        "可重复选：dfs(start, remain)",
+        "选 nums[i] 后仍从 i 开始",
+        "remain==0 收录"
+      ],
       "notes": []
     },
     {
@@ -802,7 +1029,11 @@
       "categoryOrder": 9,
       "code": "func permute(nums []int) [][]int {\n    res := [][]int{}\n    path := []int{}\n    used := make([]bool, len(nums))\n    var dfs func()\n    dfs = func() {\n        if len(path) == len(nums) {\n            // 拷贝临时数组防止回溯时path被改\n            temp := make([]int, len(path)) //注意要预定义长度，不然copy一直是空切片\n            copy(temp, path)\n            res = append(res, temp)\n            return\n        }\n        for i := 0;i < len(nums);i++ {\n            if used[i] {\n                continue\n            }\n            used[i] = true\n            path = append(path, nums[i])\n            dfs()\n            used[i] = false\n            path = path[:len(path)-1]\n        }\n    }\n    dfs()\n    return res\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "used[] 标记已用",
+        "path 满长收录（要 copy）",
+        "回溯撤销 used"
+      ],
       "notes": [
         "拷贝临时数组防止回溯时path被改"
       ]
@@ -816,7 +1047,11 @@
       "categoryOrder": 9,
       "code": "func solveNQueens(n int) [][]string {\n    res := [][]string{}\n    cols := make(map[int]bool)\n    diag1 := make(map[int]bool)\n    diag2 := make(map[int]bool)\n    board := make([][]byte, n)\n    for i := range board {\n        board[i] = make([]byte, n)\n        for j := range board[i] {\n            board[i][j] = '.'\n        }\n    }\n    var dfs func(row int)\n    dfs = func(row int) {\n        if row == n {\n            temp := make([]string, n)\n            for i := range board {\n                temp[i] = string(board[i])\n            }\n            res = append(res, temp)\n            return\n        }\n\n        for col := 0;col < n;col++ {\n            d1, d2 := col + row, row - col\n            if cols[col] || diag1[d1] || diag2[d2] {\n                continue\n            }\n            board[row][col] = 'Q'\n            cols[col] = true\n            diag1[d1] = true\n            diag2[d2] = true\n            dfs(row + 1)\n            board[row][col] = '.'\n            delete(cols, col)\n            delete(diag1, d1)\n            delete(diag2, d2)\n        }\n    }\n    dfs(0)\n    return res\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "行放皇后，cols/diag1/diag2 冲突",
+        "diag: 行-列 / 行+列",
+        "到 n 行收录棋盘"
+      ],
       "notes": []
     },
     {
@@ -828,7 +1063,11 @@
       "categoryOrder": 9,
       "code": "func subsets(nums []int) [][]int {\n    res := [][]int{}\n    path := []int{}\n    var dfs func(start int)\n    dfs = func(start int) {\n        temp := make([]int, len(path))\n        copy(temp, path)\n        res = append(res, temp)\n        for i := start;i < len(nums);i++ {\n            path = append(path, nums[i])\n            dfs(i + 1)\n            path = path[:len(path)-1]\n        }\n    }\n    dfs(0)\n    return res\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "每个 start 先收录当前 path",
+        "从 start 起选或不选推进",
+        "回溯 pop"
+      ],
       "notes": []
     },
     {
@@ -840,7 +1079,11 @@
       "categoryOrder": 9,
       "code": null,
       "status": "stub",
-      "hints": [],
+      "hints": [
+        "从每个格子尝试起点",
+        "四方向 DFS + 访问标记",
+        "匹配完 word 返回 true，回溯还原"
+      ],
       "notes": []
     },
     {
@@ -852,7 +1095,11 @@
       "categoryOrder": 9,
       "code": null,
       "status": "stub",
-      "hints": [],
+      "hints": [
+        "枚举切点，前缀是回文才递归",
+        "path 存当前分段",
+        "到末尾收录一份切割"
+      ],
       "notes": []
     },
     {
@@ -864,7 +1111,11 @@
       "categoryOrder": 10,
       "code": null,
       "status": "stub",
-      "hints": [],
+      "hints": [
+        "在较短数组上二分划分",
+        "保证左半 max ≤ 右半 min",
+        "奇偶总长决定中位取法"
+      ],
       "notes": []
     },
     {
@@ -876,7 +1127,11 @@
       "categoryOrder": 10,
       "code": "func search(nums []int, target int) int {\n    left, right := 0, len(nums)-1\n    for left <= right {\n        mid := left + (right-left)/2\n        if nums[mid] == target {\n            return mid\n        }\n        if nums[left] <= nums[mid] {\n            if nums[left] <= target && target < nums[mid] {\n                right = mid - 1\n            } else {\n                left = mid + 1\n            }\n        } else {\n            if nums[mid] < target && target <= nums[right] {\n                left = mid + 1\n            } else {\n                right = mid - 1\n            }\n        }\n    }\n    return -1\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "二分：判断 mid 落在哪段有序",
+        "target 在有序半则缩那边",
+        "否则去另一半"
+      ],
       "notes": []
     },
     {
@@ -888,7 +1143,11 @@
       "categoryOrder": 10,
       "code": "func searchRange(nums []int, target int) []int {\n    if len(nums) == 0 {\n        return []int{-1, -1}\n    }\n    start := lowerBound(nums, target)\n    if start == len(nums) || nums[start] != target {\n        return []int{-1, -1}\n    }\n    end := lowerBound(nums, target+1) - 1\n    return []int{start, end}\n}\n\nfunc lowerBound(nums []int, target int) int {\n    left, right := 0, len(nums)\n    for left < right {\n        mid := left + (right - left) / 2\n        if nums[mid] < target {\n            left = mid + 1\n        } else {\n            right = mid  // 这里不要 - 1 , 因为right可能也是答案\n        }\n    }\n    return right\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "两次二分：下界 lowerBound",
+        "上界即 lowerBound(target+1)-1",
+        "找不到返回 -1,-1"
+      ],
       "notes": []
     },
     {
@@ -900,7 +1159,11 @@
       "categoryOrder": 10,
       "code": "func searchInsert(nums []int, target int) int {\n    left, right := 0, len(nums)-1\n    for left <= right {\n        mid := left + (right-left)/2\n        if nums[mid] == target {\n            return mid\n        } else if nums[mid] < target {\n            left = mid + 1\n        } else {\n            right = mid - 1\n        }\n    }\n    return left  // 没找到就插入left\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "标准二分找插入位",
+        "mid==target 直接返",
+        "结束时 left 即插入下标"
+      ],
       "notes": []
     },
     {
@@ -912,7 +1175,11 @@
       "categoryOrder": 10,
       "code": "func searchMatrix(matrix [][]int, target int) bool {\n    if len(matrix) == 0 || len(matrix[0]) == 0 {\n        return false\n    }\n    m, n := len(matrix), len(matrix[0])\n    left, right := 0, m*n-1\n    for left <= right {\n        mid := left + (right - left) / 2\n        row, col := mid/n, mid%n // 除数是n不是m\n        val := matrix[row][col]\n        if val == target {\n            return true\n        } else if val < target {\n            left = mid + 1\n        } else {\n            right = mid - 1\n        }\n    }\n    return false\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "二维当一维 m*n 二分",
+        "mid→ (mid/n, mid%n)",
+        "与 target 比较收缩"
+      ],
       "notes": []
     },
     {
@@ -924,7 +1191,11 @@
       "categoryOrder": 10,
       "code": "func findMin(nums []int) int {\n    left, right := 0, len(nums)-1\n    for left < right {\n        mid := left + (right-left)/2\n        if nums[mid] < nums[right] {\n            right = mid\n        } else {\n            left = mid + 1\n        }\n    }\n    return nums[left]\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "二分：mid 与 right 比",
+        "mid < right 则最小在左半（含 mid）",
+        "否则在 mid 右侧"
+      ],
       "notes": []
     },
     {
@@ -936,7 +1207,11 @@
       "categoryOrder": 11,
       "code": "func isValid(s string) bool {\n    n := len(s)\n    pairs := map[byte]byte{\n        ')': '(', \n        ']': '[', \n        '}': '{',\n    }\n    stack := []byte{}\n    for i := 0; i < n; i++ {\n        if pairs[s[i]] > 0 {\n            if(len(stack) == 0 || stack[len(stack) - 1] != pairs[s[i]]) {\n                return false\n            }\n            stack = stack[:len(stack) - 1]\n        } else {\n            stack = append(stack, s[i])\n        }\n    }\n    return len(stack) == 0\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "栈存左括号",
+        "遇右括号匹配栈顶",
+        "结束栈空才合法"
+      ],
       "notes": []
     },
     {
@@ -948,7 +1223,11 @@
       "categoryOrder": 11,
       "code": "func largestRectangleArea(heights []int) int {\n    heights = append([]int{0}, heights...)\n    heights = append(heights, 0)\n    st := []int{}\n    res := 0\n    for i, h := range heights {\n        for len(st) > 0 && h < heights[st[len(st)-1]] {\n            top := st[len(st)-1]\n            st = st[:len(st)-1]\n\n            height := heights[top]\n            width := i - st[len(st)-1] - 1\n            res = max(res, height*width)\n        }\n        st = append(st, i)\n    }\n    return res\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "单调增栈存下标",
+        "两端哨兵 0",
+        "出栈时以该高为高算宽"
+      ],
       "notes": []
     },
     {
@@ -960,7 +1239,11 @@
       "categoryOrder": 11,
       "code": "type MinStack struct {\n    stack []int\n    minStack []int\n}\n\nfunc Constructor() MinStack {\n    return MinStack{}\n}\n\nfunc (this *MinStack) Push(value int)  {\n    this.stack = append(this.stack, value)\n    if(len(this.minStack) == 0) {\n        this.minStack = append(this.minStack, value)\n    } else {\n        prev := this.minStack[len(this.minStack)-1]\n        if(value < prev) {\n            this.minStack = append(this.minStack, value)\n        } else {\n            this.minStack = append(this.minStack, prev)\n        }\n    }\n}\n\nfunc (this *MinStack) Pop()  {\n    this.stack = this.stack[:len(this.stack)-1]\n    this.minStack = this.minStack[:len(this.minStack)-1]\n}\n\nfunc (this *MinStack) Top() int {\n    return this.stack[len(this.stack)-1]\n}\n\nfunc (this *MinStack) GetMin() int {\n    return this.minStack[len(this.minStack)-1]\n}\n\n/**\n * Your MinStack object will be instantiated and called as such:\n * obj := Constructor();\n * obj.Push(value);\n * obj.Pop();\n * param_3 := obj.Top();\n * param_4 := obj.GetMin();\n */",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "主栈 + 最小栈同步",
+        "push 时 min=min(x, 栈顶 min)",
+        "pop 两边一起弹"
+      ],
       "notes": []
     },
     {
@@ -972,7 +1255,11 @@
       "categoryOrder": 11,
       "code": "func decodeString(s string) string {\n    countStk := []int{}\n    strStk := []string{}\n    curNum := 0\n    curStr := \"\"\n    for _, ch := range s {\n        if ch >= '0' && ch <= '9' {\n            curNum = curNum * 10 + int(ch - '0')\n        } else if ch == '[' {\n            countStk = append(countStk, curNum)\n            strStk = append(strStk, curStr)\n            curNum = 0\n            curStr = \"\"\n        } else if ch == ']' {\n            count := countStk[len(countStk)-1]\n            countStk = countStk[:len(countStk)-1]\n\n            prev := strStk[len(strStk)-1]\n            strStk = strStk[:len(strStk)-1]\n\n            tmp := \"\"\n            for i := 0;i < count;i++ {\n                tmp += curStr\n            }\n            curStr = prev + tmp\n        } else {\n            curStr += string(ch)\n        }\n    }\n    return curStr\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "数字栈 + 字符串栈",
+        "遇 [ 压栈清空 cur",
+        "遇 ] 弹出拼接重复"
+      ],
       "notes": []
     },
     {
@@ -984,7 +1271,11 @@
       "categoryOrder": 11,
       "code": "func dailyTemperatures(temperatures []int) []int {\n    n := len(temperatures)\n    res := make([]int, n)\n    stk := []int{}\n    for i, t := range temperatures {\n    // 注意是 for 不是if，可能有好几个更高的\n        for len(stk) > 0 && t > temperatures[stk[len(stk)-1]] {\n            top := stk[len(stk)-1]\n            stk = stk[:len(stk)-1]\n            res[top] = i - top\n        }\n        stk = append(stk, i)\n    }\n    return res\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "单调减栈存下标",
+        "for 弹所有更矮的天",
+        "res[j]=i-j"
+      ],
       "notes": [
         "注意是 for 不是if，可能有好几个更高的"
       ]
@@ -998,7 +1289,11 @@
       "categoryOrder": 12,
       "code": null,
       "status": "stub",
-      "hints": [],
+      "hints": [
+        "快速选择 / 小顶堆大小 k",
+        "堆：大于堆顶则替换",
+        "堆顶即第 k 大"
+      ],
       "notes": []
     },
     {
@@ -1010,7 +1305,11 @@
       "categoryOrder": 12,
       "code": null,
       "status": "stub",
-      "hints": [],
+      "hints": [
+        "大根堆存较小半，小根堆存较大半",
+        "保持 size 差 ≤1",
+        "中位取堆顶或平均"
+      ],
       "notes": []
     },
     {
@@ -1022,7 +1321,11 @@
       "categoryOrder": 12,
       "code": "func topKFrequent(nums []int, k int) []int {\n    countMap := make(map[int]int, len(nums))\n    for _, num := range nums {\n        countMap[num]++\n    }\n    bucket := make([][]int, len(nums) + 1)\n    for num, freq := range countMap {\n        bucket[freq] = append(bucket[freq], num)\n    }\n    res := make([]int, 0, k)\n    for i := len(nums); i >= 0; i-- {\n        if len(bucket[i]) > 0 {\n            res = append(res, bucket[i]...)\n        }\n        if len(res) >= k {\n            break\n        }\n    }\n    return res[:k]\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "先 map 计频",
+        "桶排序：频次作下标",
+        "从高频桶倒取 k 个"
+      ],
       "notes": []
     },
     {
@@ -1034,7 +1337,11 @@
       "categoryOrder": 13,
       "code": null,
       "status": "stub",
-      "hints": [],
+      "hints": [
+        "贪心：维护当前段 end 与 farthest",
+        "走到 end 步数+1 更新 end",
+        "覆盖到末尾"
+      ],
       "notes": []
     },
     {
@@ -1046,7 +1353,11 @@
       "categoryOrder": 13,
       "code": null,
       "status": "stub",
-      "hints": [],
+      "hints": [
+        "维护 farthest 最远可达",
+        "i 不超过 farthest 才更新",
+        "farthest>=n-1 即 true"
+      ],
       "notes": []
     },
     {
@@ -1058,7 +1369,11 @@
       "categoryOrder": 13,
       "code": null,
       "status": "stub",
-      "hints": [],
+      "hints": [
+        "维护历史最低价 minPrice",
+        "利润 = price - minPrice",
+        "扫一遍取 max 利润"
+      ],
       "notes": []
     },
     {
@@ -1070,7 +1385,11 @@
       "categoryOrder": 13,
       "code": null,
       "status": "stub",
-      "hints": [],
+      "hints": [
+        "先扫一遍记每字母最后出现位置",
+        "扩展 end=max(end, last[c])",
+        "i==end 时切一段"
+      ],
       "notes": []
     },
     {
@@ -1082,7 +1401,11 @@
       "categoryOrder": 14,
       "code": "func longestValidParentheses(s string) int {\n    ans := 0\n    st := []int{-1}\n    for i := 0;i < len(s);i++ {\n        if s[i] == '(' {\n            st = append(st, i)\n        } else {\n            st = st[:len(st)-1]\n            if len(st) == 0 {\n                st = append(st, i)\n            } else {\n                ans = max(ans, i-st[len(st)-1])\n            }\n        }\n    }\n    return ans\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "栈底放「最后一个未匹配下标」初 -1",
+        "')' 弹出后空则压当前，否则更新长度",
+        "或 DP"
+      ],
       "notes": []
     },
     {
@@ -1094,7 +1417,11 @@
       "categoryOrder": 14,
       "code": "func climbStairs(n int) int {\n    if n <= 2 {\n        return n\n    }\n    p, q := 1, 2\n    for i := 3;i <= n;i++ {\n        r := p+q\n        p = q\n        q = r\n    }\n    return q\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "斐波那契：f(n)=f(n-1)+f(n-2)",
+        "滚动两个变量",
+        "n≤2 直接返"
+      ],
       "notes": []
     },
     {
@@ -1106,7 +1433,11 @@
       "categoryOrder": 14,
       "code": "func generate(numRows int) [][]int {\n    // 第i行有i+1个数，首尾都是1，中间部分的数=上一行同一列+上一行前一列\n    res := make([][]int, numRows)\n    for i := 0;i < numRows;i++ {\n        // 初始化当前行\n        res[i] = make([]int, i+1)\n        // 填充首尾\n        res[i][0] = 1\n        res[i][i] = 1\n        // 填充中间,如果是第0行直接不会进入这个循环，所以不用担心\n        for j := 1;j < i;j++ {\n            res[i][j] = res[i-1][j] + res[i-1][j-1]\n        }\n    }\n    return res\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "第 i 行 i+1 个数",
+        "首尾 1，中间 = 上行同列+上行前一列",
+        "逐行生成"
+      ],
       "notes": [
         "第i行有i+1个数，首尾都是1，中间部分的数=上一行同一列+上一行前一列",
         "初始化当前行",
@@ -1123,7 +1454,11 @@
       "categoryOrder": 14,
       "code": "func wordBreak(s string, wordDict []string) bool {\n    wordMap := make(map[string]bool, len(wordDict))\n    for _, word := range wordDict {\n        wordMap[word] = true\n    }\n    n:=len(s)\n    dp := make([]bool, n+1)\n    dp[0] = true\n    for i := 1;i <= n;i++ {\n        for j := 0;j < i;j++ {\n            if dp[j] && wordMap[s[j:i]] {\n                dp[i] = true\n                break;//这里注意，只要找到一种情况，就可以直接退出内层循环\n            }\n        }\n    }\n    return dp[n]\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "dp[i] 表示 s[:i] 可拆",
+        "枚举 j<i，dp[j] 且 s[j:i] 在字典",
+        "dp[0]=true"
+      ],
       "notes": []
     },
     {
@@ -1135,7 +1470,11 @@
       "categoryOrder": 14,
       "code": "func maxProduct(nums []int) int {\n    // 这题一个写法技巧是遇到负数的时候，可以当时直接翻转最大和最小。\n    ans, imin, imax := nums[0], nums[0], nums[0]\n    for i := 1;i < len(nums);i++ {\n        x := nums[i]\n        if x < 0 {\n            imin, imax = imax, imin\n        }\n        imax = max(x, x*imax)\n        imin = min(x, x*imin)\n        ans = max(ans, imax)\n    }\n    return ans\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "同时维护 imax/imin",
+        "遇负数交换 imax/imin",
+        "ans 取 imax 全局最大"
+      ],
       "notes": [
         "这题一个写法技巧是遇到负数的时候，可以当时直接翻转最大和最小。"
       ]
@@ -1149,7 +1488,11 @@
       "categoryOrder": 14,
       "code": "func rob(nums []int) int {\n    n := len(nums)\n    if n == 0 {\n        return 0\n    }\n    if n == 1 {\n        return nums[0]\n    }\n    prev2 := nums[0]\n    prev1 := max(nums[0], nums[1])\n    for i := 2;i < n;i++ {\n        cur := max(prev1, prev2 + nums[i])\n        prev2 = prev1\n        prev1 = cur\n    }\n    return prev1\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "dp[i]=max(dp[i-1], dp[i-2]+nums[i])",
+        "不能相邻",
+        "滚动两变量"
+      ],
       "notes": []
     },
     {
@@ -1161,7 +1504,11 @@
       "categoryOrder": 14,
       "code": "func numSquares(n int) int {\n    dp  := make([]int, n+1)\n    for i := 1;i <= n;i++ {\n        dp[i] = math.MaxInt32\n    }\n    dp[0] = 0\n    for i := 1;i <= n;i++ {\n        for j := 1;j*j<=i;j++ {\n            dp[i] = min(dp[i], dp[i-j*j]+1)\n        }\n    }\n    return dp[n]\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "完全背包：dp[i]=min 平方数个数",
+        "枚举 j*j≤i",
+        "dp[0]=0 其余大数"
+      ],
       "notes": []
     },
     {
@@ -1173,7 +1520,11 @@
       "categoryOrder": 14,
       "code": "func lengthOfLIS(nums []int) int {\n    tails := make([]int, 0)\n    for _,num := range nums {\n        if len(tails) == 0 || num > tails[len(tails)-1] {\n            tails = append(tails, num)\n        } else {\n            idx := sort.Search(len(tails), func(i int) bool {\n                return tails[i] >= num\n            })\n            tails[idx] = num\n        }\n    }\n    return len(tails)\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "tails 维护各长度最小尾",
+        "二分插入/替换",
+        "len(tails) 即 LIS"
+      ],
       "notes": []
     },
     {
@@ -1185,7 +1536,11 @@
       "categoryOrder": 14,
       "code": "func coinChange(coins []int, amount int) int {\n    // 先初始化为不可达状态\n    dp := make([]int, amount+1)\n    for i := 1;i <= amount;i++ {\n        dp[i] = amount+1\n    }\n    dp[0] = 0\n    for i := 1;i <= amount;i++ {\n        for _, coin := range coins {\n            if i >= coin {\n                dp[i] = min(dp[i], dp[i-coin] + 1)\n            }\n        }\n    }\n    if dp[amount] == amount+1 {\n        return -1\n    }\n    return dp[amount]\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "完全背包：dp[i] 凑 i 最少币数",
+        "初值 amount+1 表不可达",
+        "dp[0]=0，答案超界则 -1"
+      ],
       "notes": [
         "先初始化为不可达状态"
       ]
@@ -1199,7 +1554,11 @@
       "categoryOrder": 14,
       "code": "func canPartition(nums []int) bool {\n    sum := 0\n    for _,num := range nums {\n        sum += num\n    }\n    if sum%2==1 {\n        return false\n    }\n    target := sum/2\n    dp := make([]bool, target+1)\n    dp[0] = true\n    \n    for _,num := range nums {\n        for j := target;j >= num;j-- { //注意这里的循环条件是 j 大于等于 num。还有注意是倒序。\n            dp[j] = dp[j] || dp[j-num]\n        }\n    }\n    return dp[target]\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "目标和 = sum/2（奇数直接 false）",
+        "0-1 背包 bool 可达",
+        "从后往前更新防重复用"
+      ],
       "notes": []
     },
     {
@@ -1211,7 +1570,11 @@
       "categoryOrder": 15,
       "code": "func longestPalindrome(s string) string {\n    if s == \"\" {\n        return \"\"\n    }\n    start, maxLen := 0, 1 // 最大长度的最坏情况就是只有一个字母，所以是一。\n    expand := func(l, r int) {\n        for l >= 0 && r < len(s) && s[l] == s[r] {\n            if r-l+1 > maxLen {\n                start = l\n                maxLen = r-l+1\n            }\n            l--\n            r++\n        }\n    }\n    for i := 0;i < len(s);i++ {\n        expand(i,i) // 奇数\n        expand(i, i+1) // 偶数\n    }\n    return s[start:start+maxLen]\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "中心扩展：奇偶两套 l,r",
+        "更新 start/maxLen",
+        "或 DP s[i]==s[j] && 内回文"
+      ],
       "notes": []
     },
     {
@@ -1223,7 +1586,11 @@
       "categoryOrder": 15,
       "code": "func uniquePaths(m int, n int) int {\n    dp := make([][]int, m)\n    for i := 0;i < m;i++ {\n        dp[i] = make([]int, n)\n        dp[i][0] = 1 // 初始化第一列。\n    }\n    for j := 0;j < n;j++ {\n        dp[0][j] = 1 // 初始化第一行。\n    }\n    for i := 1;i < m;i++ {\n        for j := 1;j < n;j++ {\n            dp[i][j] = dp[i-1][j] + dp[i][j-1]\n        }\n    }\n    return dp[m-1][n-1]\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "dp[i][j]=上+左",
+        "首行首列全 1",
+        "可压成一维"
+      ],
       "notes": []
     },
     {
@@ -1235,7 +1602,11 @@
       "categoryOrder": 15,
       "code": "func minPathSum(grid [][]int) int {\n    m, n := len(grid), len(grid[0])\n    dp := make([][]int, m)\n    for i := 0;i < m;i++ {\n        dp[i] = make([]int, n)\n    }\n    dp[0][0] = grid[0][0]\n    for i := 1;i < m;i++ {\n        dp[i][0] = dp[i-1][0] + grid[i][0]\n    }\n    for j := 1;j < n;j++ {\n        dp[0][j] = dp[0][j-1] + grid[0][j]\n    }\n    for i := 1;i < m;i++ {\n        for j := 1;j < n;j++ {\n            dp[i][j] = min(dp[i-1][j], dp[i][j-1]) + grid[i][j]\n        }\n    }\n    return dp[m-1][n-1]\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "dp[i][j]=grid+min(上,左)",
+        "先填首行首列前缀",
+        "右下角即答案"
+      ],
       "notes": []
     },
     {
@@ -1247,7 +1618,11 @@
       "categoryOrder": 15,
       "code": "func minDistance(word1 string, word2 string) int {\n    // 三种操作，插入、替换、删除\n    // 先初始化dp数组\n    m,n:=len(word1),len(word2)\n    dp := make([][]int, m+1)\n    for i := 0;i <= m;i++ {\n        dp[i] = make([]int, n+1)\n    }\n    // 初始化两种初始情况，从0到完整串、从完整串到0\n    for i := 0;i <= m;i++ {\n        dp[i][0] = i\n    }\n    for j := 0;j <= n;j++ {\n        dp[0][j] = j\n    }\n    for i := 1;i <= m;i++ {\n        for j := 1;j <= n;j++ {\n            if word1[i-1] == word2[j-1] {\n                dp[i][j] = dp[i-1][j-1]\n            } else {\n                dp[i][j] = min(dp[i-1][j-1], dp[i-1][j], dp[i][j-1]) + 1\n            }\n        }\n    }\n    return dp[m][n]\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "dp[i][j] 编辑 word1[:i]→word2[:j]",
+        "等则取对角，否则 min(插删替)+1",
+        "边界 i/j 为长度"
+      ],
       "notes": [
         "三种操作，插入、替换、删除",
         "先初始化dp数组",
@@ -1263,7 +1638,11 @@
       "categoryOrder": 15,
       "code": "func longestCommonSubsequence(text1 string, text2 string) int {\n    m,n := len(text1), len(text2)\n    dp := make([][]int, m+1)\n    for i := 0;i <= m;i++ {\n        dp[i] = make([]int, n+1)\n    }\n    for i := 1;i <= m;i++ {\n        for j := 1;j <= n;j++ {\n            if text1[i-1] == text2[j-1] {\n                dp[i][j] = dp[i-1][j-1] + 1\n            } else {\n                dp[i][j] = max(dp[i-1][j], dp[i][j-1])\n            }\n        }\n    }\n    return dp[m][n]\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "dp[i][j]：公共子序列长",
+        "相等则对角+1",
+        "否则 max(上,左)"
+      ],
       "notes": []
     },
     {
@@ -1275,7 +1654,11 @@
       "categoryOrder": 16,
       "code": "func nextPermutation(nums []int)  {\n    n := len(nums)\n    i := n-2 // 因为和i+1比的,所以从n-2开始\n    for i >= 0 && nums[i] >= nums[i+1] {\n        i--\n    }\n    if i >= 0 {\n        j := n-1\n        for j >= 0 && nums[j] <= nums[i] {\n            j--\n        }\n        nums[i], nums[j] = nums[j], nums[i]\n    }\n    left, right := i+1, n-1\n    for  left < right {\n        nums[left], nums[right] = nums[right], nums[left]\n        left++\n        right--\n    }\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "从右找第一对升序 a[i]<a[i+1]",
+        "再找最右比 a[i] 大的交换",
+        "i 后整段升序（反转）"
+      ],
       "notes": []
     },
     {
@@ -1287,7 +1670,11 @@
       "categoryOrder": 16,
       "code": "func sortColors(nums []int)  {\n    p0, p2 := 0, len(nums) - 1\n    cur := 0\n    for cur <= p2 {\n        if nums[cur] == 0 {\n            nums[p0], nums[cur] = nums[cur], nums[p0]\n            p0++\n            cur++\n        } else if nums[cur] == 2 {\n            nums[cur], nums[p2] = nums[p2], nums[cur]\n            p2--\n        } else {\n            cur++\n        }\n    }\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "三指针荷兰国旗 p0/cur/p2",
+        "0 换到左，2 换到右",
+        "1 只前进 cur"
+      ],
       "notes": []
     },
     {
@@ -1299,7 +1686,11 @@
       "categoryOrder": 16,
       "code": "func singleNumber(nums []int) int {\n    res := 0\n    for _, num := range nums {\n        res ^= num\n    }\n    return res\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "异或全体",
+        "a^a=0，a^0=a",
+        "剩下即唯一"
+      ],
       "notes": []
     },
     {
@@ -1311,7 +1702,11 @@
       "categoryOrder": 16,
       "code": "func majorityElement(nums []int) int {\n    candidate, count := nums[0], 1\n    // 注意循环从开始\n    for i := 1; i < len(nums);i++ {\n        if count == 0 {\n            candidate = nums[i]\n            count = 1\n        } else if nums[i] == candidate {\n            count++\n        } else {\n            count--\n        }\n    }\n    return candidate\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "Boyer-Moore 投票",
+        "相同 count++ 不同 --",
+        "count 归零换候选人"
+      ],
       "notes": [
         "注意循环从开始"
       ]
@@ -1325,7 +1720,11 @@
       "categoryOrder": 16,
       "code": "func findDuplicate(nums []int) int {\n    slow, fast := nums[0], nums[0]\n    for {\n        slow = nums[slow]\n        fast = nums[nums[fast]]\n        if slow == fast {\n            break\n        }\n    }\n    fast = nums[0]\n    for slow != fast {\n        slow = nums[slow]\n        fast = nums[fast]\n    }\n    return slow\n}",
       "status": "ready",
-      "hints": [],
+      "hints": [
+        "环检测：nums[i] 当下标",
+        "快慢相遇后 head 与 slow 再走",
+        "相遇点即重复数"
+      ],
       "notes": []
     }
   ]
