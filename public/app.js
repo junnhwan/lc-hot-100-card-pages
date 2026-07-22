@@ -590,13 +590,28 @@ function renderProblemList() {
   main.appendChild(ul);
 }
 
+/**
+ * Count mastery over ALL catalog problems (not filtered).
+ * Orphan keys in localStorage for deleted ids are ignored.
+ * Missing / invalid keys count as unknown.
+ * @returns {{ known: number, fuzzy: number, unknown: number }}
+ */
+function countMasteryAll() {
+  const counts = { known: 0, fuzzy: 0, unknown: 0 };
+  if (!catalog) return counts;
+  for (const p of catalog.problems) {
+    const level = getMastery(p.id);
+    counts[level] += 1;
+  }
+  return counts;
+}
+
 function renderStats() {
   const stats = $('stats');
   if (!stats || !catalog) return;
-  const shown = filteredProblems().length;
-  const total = catalog.problems.length;
-  stats.textContent =
-    shown === total ? `${total} 题` : `${shown} / ${total} 题`;
+  const { known, fuzzy, unknown } = countMasteryAll();
+  stats.textContent = `记住了 ${known} · 模糊 ${fuzzy} · 不会 ${unknown}`;
+  stats.title = `全部 ${catalog.problems.length} 题 · 记住了 ${known} · 模糊 ${fuzzy} · 不会 ${unknown}`;
 }
 
 /**
