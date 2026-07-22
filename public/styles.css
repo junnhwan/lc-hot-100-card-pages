@@ -699,7 +699,6 @@ body {
   font-family: inherit;
   background: transparent;
   padding: 0;
-  color: var(--title);
 }
 
 /* highlight.js soft overrides so theme vars still feel consistent */
@@ -799,6 +798,25 @@ body.overlay-open {
   background: var(--panel);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45), var(--shadow);
   overflow: hidden;
+}
+
+html[data-theme="light"] .overlay-shell {
+  box-shadow: 0 18px 48px rgba(26, 31, 40, 0.14), 0 2px 8px rgba(26, 31, 40, 0.06),
+    var(--shadow);
+}
+
+/* Keep hljs token colors; only fall back for plain text */
+.code-block code:not(.hljs) {
+  color: var(--title);
+}
+
+html[data-theme="light"] .code-block {
+  background: #fffdf8;
+  border-color: var(--border);
+}
+
+html[data-theme="light"] .code-stub {
+  background: #fffdf8;
 }
 
 .overlay-topbar {

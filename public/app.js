@@ -100,6 +100,15 @@ function applyTheme(theme) {
         ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css'
         : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css';
   }
+  const btn = $('theme-toggle');
+  if (btn) {
+    const toLight = next === 'dark';
+    btn.title = toLight ? '切换到浅色主题' : '切换到深色主题';
+    btn.setAttribute('aria-label', btn.title);
+    btn.setAttribute('aria-pressed', next === 'light' ? 'true' : 'false');
+    const icon = btn.querySelector('.theme-icon');
+    if (icon) icon.textContent = next === 'light' ? '☀' : '☾';
+  }
   try {
     localStorage.setItem(THEME_KEY, next);
   } catch {
