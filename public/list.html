@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>题库列表 · LC Hot 100</title>
+  <link rel="stylesheet" href="./styles.css?v=5" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"
+    id="hljs-theme"
+  />
+</head>
+<body>
+  <header id="topbar">
+    <div class="topbar-brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <h1 class="brand-title">题库列表</h1>
+    </div>
+    <div class="topbar-tools">
+      <label class="search-wrap" for="search">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input
+          id="search"
+          type="search"
+          placeholder="搜索题号 / 标题 / slug"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </label>
+      <div id="stats" class="stats" aria-live="polite">—</div>
+      <a class="study-entry" href="./index.html" title="回到卡片刷题">✦ 刷卡</a>
+      <button id="theme-toggle" type="button" title="切换主题" aria-label="切换浅色/深色主题">
+        <span class="theme-icon" aria-hidden="true">◐</span>
+      </button>
+    </div>
+  </header>
+
+  <a class="study-banner" href="./index.html">
+    <div class="study-banner-text">
+      <strong>返回刷卡模式</strong>
+      <span>一次一题 · 分类 / 随机 / 下一题 · 先想再看思路与代码</span>
+    </div>
+    <span class="study-banner-cta">开始刷卡 →</span>
+  </a>
+
+  <div id="cat-chips" class="cat-chips" aria-label="分类（移动端）"></div>
+
+  <div id="layout">
+    <aside id="sidebar" aria-label="分类与筛选">
+      <div class="sidebar-section">
+        <div class="sidebar-heading">分类</div>
+        <nav id="cat-list" class="cat-list"></nav>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-heading">筛选</div>
+        <div id="filter-chips" class="filter-chips" aria-label="掌握度筛选">
+          <button type="button" class="chip is-active" data-filter="all">全部</button>
+          <button type="button" class="chip" data-filter="unknown">不会</button>
+          <button type="button" class="chip" data-filter="fuzzy">模糊</button>
+          <button type="button" class="chip" data-filter="known">记住了</button>
+          <button type="button" class="chip" data-filter="stub">待补全</button>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <a class="sidebar-study" href="./index.html">✦ 返回刷卡</a>
+      </div>
+    </aside>
+
+    <main id="main" tabindex="-1">
+      <div class="loading">加载中…</div>
+    </main>
+  </div>
+
+  <div id="overlay" class="overlay" hidden aria-hidden="true"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/go.min.js"></script>
+  <script type="module" src="./app.js?v=5"></script>
+</body>
+</html>

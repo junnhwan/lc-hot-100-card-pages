@@ -4,78 +4,55 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LC Hot 100 速记</title>
-  <link rel="stylesheet" href="./styles.css" />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"
-    id="hljs-theme"
-  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Source+Sans+3:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./study.css?v=5" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" id="hljs-theme" />
 </head>
 <body>
-  <header id="topbar">
-    <div class="topbar-brand">
-      <span class="brand-mark" aria-hidden="true"></span>
-      <h1 class="brand-title">LC Hot 100 速记</h1>
-    </div>
-    <div class="topbar-tools">
-      <label class="search-wrap" for="search">
-        <span class="search-icon" aria-hidden="true">⌕</span>
-        <input
-          id="search"
-          type="search"
-          placeholder="搜索题号 / 标题 / slug"
-          autocomplete="off"
-          spellcheck="false"
-        />
-      </label>
-      <div id="stats" class="stats" aria-live="polite">—</div>
-      <a class="study-entry" href="./study.html" title="一次只看一题">✦ 专注刷卡</a>
-      <button id="theme-toggle" type="button" title="切换主题" aria-label="切换浅色/深色主题">
-        <span class="theme-icon" aria-hidden="true">◐</span>
-      </button>
-    </div>
-  </header>
-
-  <a class="study-banner" href="./study.html">
-    <div class="study-banner-text">
-      <strong>专注刷卡模式</strong>
-      <span>一次一题 · 分类 / 随机 / 下一题 · 先想再看思路与代码</span>
-    </div>
-    <span class="study-banner-cta">开始刷卡 →</span>
-  </a>
-
-  <div id="cat-chips" class="cat-chips" aria-label="分类（移动端）"></div>
-
-  <div id="layout">
-    <aside id="sidebar" aria-label="分类与筛选">
-      <div class="sidebar-section">
-        <div class="sidebar-heading">分类</div>
-        <nav id="cat-list" class="cat-list"></nav>
+  <div class="app" id="app">
+    <header class="bar">
+      <a class="link" href="./list.html">☰ 题库列表</a>
+      <div class="bar-mid">
+        <span id="progress" class="progress">—</span>
       </div>
-      <div class="sidebar-section">
-        <div class="sidebar-heading">筛选</div>
-        <div id="filter-chips" class="filter-chips" aria-label="掌握度筛选">
-          <button type="button" class="chip is-active" data-filter="all">全部</button>
-          <button type="button" class="chip" data-filter="unknown">不会</button>
-          <button type="button" class="chip" data-filter="fuzzy">模糊</button>
-          <button type="button" class="chip" data-filter="known">记住了</button>
-          <button type="button" class="chip" data-filter="stub">待补全</button>
+      <div class="bar-right">
+        <button type="button" class="icon" id="btn-theme" title="主题">☾</button>
+      </div>
+    </header>
+
+    <div class="filters">
+      <select id="cat" class="sel" aria-label="分类"></select>
+      <select id="mastery" class="sel" aria-label="掌握度">
+        <option value="all">全部</option>
+        <option value="unknown">不会</option>
+        <option value="fuzzy">模糊</option>
+        <option value="known">记住了</option>
+        <option value="stub">待补全</option>
+      </select>
+      <button type="button" class="chip" data-act="shuffle">打乱</button>
+      <button type="button" class="chip" data-act="random">随机</button>
+    </div>
+
+    <main class="stage">
+      <div id="empty" class="empty" hidden>这个筛选下没有题目</div>
+
+      <div id="card" class="card" hidden>
+        <div id="face" class="face" data-showing="front">
+          <!-- content injected -->
         </div>
       </div>
-      <div class="sidebar-section">
-        <a class="sidebar-study" href="./study.html">✦ 进入专注刷卡</a>
-      </div>
-    </aside>
-
-    <main id="main" tabindex="-1">
-      <div class="loading">加载中…</div>
     </main>
-  </div>
 
-  <div id="overlay" class="overlay" hidden aria-hidden="true"></div>
+    <nav class="nav">
+      <button type="button" class="nav-btn" data-act="prev">上一题</button>
+      <button type="button" class="nav-btn nav-primary" data-act="next">下一题</button>
+    </nav>
+  </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/go.min.js"></script>
-  <script type="module" src="./app.js"></script>
+  <script type="module" src="./study.js?v=5"></script>
 </body>
 </html>
