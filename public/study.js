@@ -163,28 +163,16 @@ function backHtml(p) {
   const notes = Array.isArray(p.notes) ? p.notes : [];
   const hasCode = p.status !== 'stub' && !!p.code;
 
-  let codeSection = '';
+  let codeBody = '';
   if (!hasCode) {
-    codeSection = `<div class="stub">待补全 — 笔记里还没有代码</div>`;
-  } else if (state.codeOpen) {
-    codeSection = `
-      <div class="code-head">
-        <h3>题解代码</h3>
-        <button type="button" class="ghost" data-act="toggle-code">收起</button>
-      </div>
-      <pre class="codebox"><code class="language-go" id="code-el"></code></pre>
-    `;
+    codeBody = `<div class="stub">待补全 — 笔记里还没有代码</div>`;
   } else {
-    codeSection = `
-      <div class="code-head">
-        <h3>题解代码</h3>
-        <button type="button" class="ghost" data-act="toggle-code">展开代码</button>
-      </div>
-    `;
+    // code always shown on answer side; only this pane scrolls when long
+    codeBody = `<pre class="codebox"><code class="language-go" id="code-el"></code></pre>`;
   }
 
   const notesBlock = notes.length
-    ? `<div class="block"><h3>易错 / 补充</h3><ul>${listHtml(notes)}</ul></div>`
+    ? `<div class="subblock"><h4>易错 / 补充</h4><ul>${listHtml(notes)}</ul></div>`
     : '';
 
   const lc = p.url
@@ -194,19 +182,25 @@ function backHtml(p) {
   return `
     <div class="back">
       <div class="back-head">
-        <h2 class="back-title">#${escapeHtml(p.id)} ${escapeHtml(p.title || '')}</h2>
+        <div class="back-head-main">
+          <span class="badge">${escapeHtml(p.category || '—')}</span>
+          <h2 class="back-title">#${escapeHtml(p.id)} ${escapeHtml(p.title || '')}</h2>
+        </div>
         <div class="back-actions">
           ${lc}
           <button type="button" class="ghost" data-act="hide" title="快捷键 空格">回到正面 <span class="btn-kbd">空格</span></button>
         </div>
       </div>
-      <div class="scroll">
-        <div class="block">
-          <h3>思路要点</h3>
-          <ul>${listHtml(hints)}</ul>
-        </div>
-        ${notesBlock}
-        <div class="block">${codeSection}</div>
+      <div class="split">
+        <section class="pane pane-left">
+          <h3 class="pane-title">思路要点</h3>
+          <ul class="pane-list">${listHtml(hints)}</ul>
+          ${notesBlock}
+        </section>
+        <section class="pane pane-right">
+          <h3 class="pane-title">题解代码</h3>
+          ${codeBody}
+        </section>
       </div>
       <div class="rate">
         <button type="button" class="again ${m === 'unknown' ? 'is-on' : ''}" data-act="rate" data-level="unknown" title="快捷键 1">不会 <span class="btn-kbd">1</span></button>
@@ -227,7 +221,7 @@ function paintFace(html, { animate = false } = {}) {
     // inject code text safely after HTML paint (never put code in template HTML)
     const p = current();
     const codeEl = document.getElementById('code-el');
-    if (p && codeEl && state.codeOpen && p.code) {
+    if (p && codeEl && p.code) {
       codeEl.textContent = p.code;
       if (window.hljs) {
         try {

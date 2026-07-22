@@ -42,13 +42,17 @@ html, body {
 }
 
 .app {
-  max-width: 720px;
+  max-width: 1100px;
+  width: 100%;
   margin: 0 auto;
-  min-height: 100vh;
-  padding: 14px 16px 20px;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  padding: 12px 18px 10px;
   display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  gap: 12px;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  gap: 10px;
+  overflow: hidden;
 }
 
 /* Top bar */
@@ -124,6 +128,7 @@ html, body {
 .stage {
   display: flex;
   min-height: 0;
+  overflow: hidden;
 }
 
 .empty {
@@ -135,7 +140,7 @@ html, body {
 .card {
   flex: 1;
   display: flex;
-  min-height: 460px;
+  min-height: 0;
   border-radius: var(--radius);
   background: var(--surface);
   border: 1px solid var(--line);
@@ -148,7 +153,7 @@ html, body {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding: 22px 22px 18px;
+  padding: 16px 18px 14px;
   opacity: 1;
   transform: translateY(0);
   transition: opacity 0.28s var(--ease), transform 0.28s var(--ease);
@@ -247,28 +252,41 @@ html, body {
 .reveal:hover { filter: brightness(1.06); }
 .reveal:active { transform: scale(0.985); }
 
-/* Back layout */
+/* Back layout — wide split: left hints / right code */
 .back {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  gap: 12px;
+  gap: 10px;
+  overflow: hidden;
 }
 
 .back-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.back-head-main {
+  display: flex;
+  align-items: center;
   gap: 10px;
+  min-width: 0;
+  flex: 1;
 }
 
 .back-title {
   margin: 0;
   font-family: var(--serif);
-  font-size: 22px;
+  font-size: clamp(18px, 2.2vw, 24px);
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .back-actions {
@@ -292,25 +310,30 @@ html, body {
 }
 .ghost:hover { border-color: var(--accent); }
 
-.scroll {
+.split {
   flex: 1;
-  overflow: auto;
   min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.35fr);
+  gap: 12px;
+  overflow: hidden;
+}
+
+.pane {
+  min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-right: 2px;
-}
-
-.block {
   border: 1px solid var(--line);
   background: var(--surface-2);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 12px 14px;
+  overflow: hidden;
 }
 
-.block h3 {
-  margin: 0 0 8px;
+.pane-title {
+  margin: 0 0 10px;
+  flex-shrink: 0;
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -318,31 +341,80 @@ html, body {
   font-weight: 700;
 }
 
-.block ul {
+.pane-left {
+  overflow: auto;
+}
+
+.pane-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.pane-list li {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.pane-list li::marker {
+  color: var(--accent);
+}
+
+.subblock {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.subblock h4 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.subblock ul {
   margin: 0;
   padding-left: 18px;
   display: grid;
   gap: 6px;
 }
-.block li {
-  font-size: 14.5px;
-  line-height: 1.55;
-  color: var(--ink);
-}
-.block li::marker { color: var(--accent); }
 
-.code-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
+.subblock li {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
 }
-.code-head h3 { margin: 0; }
+
+.pane-right {
+  /* only the code area scrolls */
+  overflow: hidden;
+}
+
+.pane-right .codebox {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  height: 100%;
+}
+
+.stub {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 16px 10px;
+  text-align: center;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  margin: auto 0;
+}
 
 .codebox {
   margin: 0;
-  max-height: min(52vh, 420px);
+  flex: 1;
   overflow: auto;
   border-radius: 10px;
   border: 1px solid #3a4558;
@@ -357,8 +429,8 @@ html[data-theme="light"] .codebox {
 
 .codebox code {
   font-family: var(--mono);
-  font-size: 14px;
-  line-height: 1.65;
+  font-size: 13.5px;
+  line-height: 1.6;
   letter-spacing: 0.01em;
   background: transparent !important;
   padding: 0 !important;
@@ -439,18 +511,20 @@ html[data-theme="light"] .codebox .hljs-variable {
 .stub {
   color: var(--muted);
   font-size: 13px;
-  padding: 10px;
+  padding: 16px 10px;
   text-align: center;
   border: 1px dashed var(--line);
   border-radius: 10px;
+  margin: auto 0;
 }
 
 .rate {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 8px;
-  margin-top: auto;
-  padding-top: 4px;
+  flex-shrink: 0;
+  margin-top: 0;
+  padding-top: 2px;
 }
 
 .rate button {
@@ -560,13 +634,40 @@ html[data-theme="light"] .nav-primary {
   color: #fff;
 }
 
+@media (max-width: 860px) {
+  .split {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 0.42fr) minmax(0, 1fr);
+  }
+
+  .pane-left {
+    max-height: none;
+  }
+
+  .back-title {
+    white-space: normal;
+  }
+}
+
 @media (max-width: 520px) {
-  .app { padding: 12px; gap: 10px; }
-  .card { min-height: 520px; }
+  .app {
+    padding: 10px 12px 8px;
+    gap: 8px;
+  }
+
   .ptitle { max-width: none; }
   .filters .chip { flex: 1; }
 
   .kbd-hint {
     font-size: 11px;
+  }
+
+  .rate button {
+    height: 40px;
+    font-size: 12px;
+  }
+
+  .nav-btn {
+    height: 40px;
   }
 }
