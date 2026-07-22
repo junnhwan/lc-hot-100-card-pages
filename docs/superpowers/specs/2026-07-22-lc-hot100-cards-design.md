@@ -62,7 +62,8 @@ Overlay：卡片模式 · 测验模式
 ```
 
 - 桌面（≥900px）：侧栏固定  
-- 小屏：分类改为顶部横向 chips 或抽屉  
+- 小屏（&lt;900px）：分类改为**顶部横向可滚动 chips**（不做汉堡抽屉，降低实现量）  
+
 
 ### 三种模式
 
@@ -93,12 +94,11 @@ type Problem = {
   slug: string            // "two-sum"
   url: string             // leetcode.cn URL
   category: string        // "哈希"（去掉标题尾部数字）
-  categoryOrder: number
+  categoryOrder: number   // 按 MD 中该分类首次出现顺序，从 0 递增
   code: string | null     // 原样；stub 为 null
   status: "ready" | "stub"
   hints: string[]         // 2–4 条口诀
   notes: string[]         // 易错 / 补充
-  tags?: string[]
 }
 
 type Catalog = {
@@ -108,6 +108,23 @@ type Catalog = {
 }
 ```
 
+### `data/notes-override.json` 形状
+
+```json
+{
+  "1": {
+    "hints": ["map 存 target-num", "先查后写"],
+    "notes": ["返回下标不是值"]
+  },
+  "76": {
+    "hints": ["滑动窗口 + need/window", "收缩到不满足为止"]
+  }
+}
+```
+
+- 顶层 key：题号字符串（与 `Problem.id` 一致）  
+- 每题可选 `hints`、`notes`（字符串数组）；缺省字段不覆盖合并链中的更低优先级结果  
+
 ### 掌握度（仅浏览器）
 
 ```ts
@@ -115,13 +132,16 @@ type Catalog = {
 Record<string /* id */, "unknown" | "fuzzy" | "known">
 ```
 
-第一版不做导出/导入；换设备会丢失（可接受）。
+- 某题 **没有** localStorage 记录时，视为 `"unknown"`（筛选、徽章、统计一致）  
+- 第一版不做导出/导入；换设备会丢失（可接受）  
 
 ### 要点优先级
 
 1. Markdown 内可选覆盖块（最高）  
 2. `data/notes-override.json`（批量人工补充）  
 3. 从代码与行内注释启发式生成（兜底）  
+
+**启发式下限（避免实现时过度设计）：** 收集代码中非空 `//` 行注释文本；若有，优先填入 `notes`（或拆成短 `hints`）；若无注释且无 override/MD，则 `hints: []`、`notes: []`，UI 隐藏空块。不要求 AST/LLM。  
 
 ## 5. Markdown 约定
 
@@ -187,7 +207,7 @@ func twoSum(...) { ... }
 - 正文：`#c5d0de`；标题：`#e7eef8`  
 - 掌握度：绿（known）/ 黄（fuzzy）/ 红（unknown）— 弱饱和  
 - 字体：UI 系统栈；代码 `ui-monospace`, Consolas  
-- 默认深色，顶栏可切换浅色  
+- 默认深色，顶栏可切换浅色；浅色为同一布局的合理反色（纸色底 + 深字），不单独设计第二套组件  
 
 ### 列表行为
 
