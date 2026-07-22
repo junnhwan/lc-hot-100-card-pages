@@ -1,36 +1,35 @@
+/**
+ * Anki-style single-card study page.
+ * Event delegation only — no fragile per-button rebinding.
+ * Front/back via re-render + CSS fade (no 3D).
+ */
 const MASTER_KEY = 'lc-hot100-mastery';
 const THEME_KEY = 'lc-hot100-theme';
 
-const MASTERY_LABELS = {
-  unknown: '不会',
-  fuzzy: '模糊',
-  known: '记住了',
-};
+const LABEL = { unknown: '不会', fuzzy: '模糊', known: '记住了' };
 
-/** @type {{ categories: Array<{name:string,count:number,order:number}>, problems: Array<object> } | null} */
+/** @type {{ categories: any[], problems: any[] } | null} */
 let catalog = null;
-/** @type {Record<string, 'unknown'|'fuzzy'|'known'>} */
+/** @type {Record<string, string>} */
 let masteryMap = {};
 
 const state = {
   category: 'all',
   masteryFilter: 'all',
-  /** @type {object[]} */
-  deck: [],
+  deck: /** @type {any[]} */ ([]),
   index: 0,
-  side: 'front', // front | back
+  showing: 'front', // front | back
   codeOpen: false,
+  animating: false,
 };
 
-function $(id) {
-  return document.getElementById(id);
-}
+const $ = (id) => document.getElementById(id);
 
 function loadMastery() {
   try {
     const raw = localStorage.getItem(MASTER_KEY);
-    masteryMap = raw ? JSON.parse(raw) || {} : {};
-    if (typeof masteryMap !== 'object' || masteryMap === null) masteryMap = {};
+    const parsed = raw ? JSON.parse(raw) : {};
+    masteryMap = parsed && typeof parsed === 'object' ? parsed : {};
   } catch {
     masteryMap = {};
   }
@@ -46,11 +45,10 @@ function saveMastery() {
 
 function getMastery(id) {
   const v = masteryMap[String(id)];
-  if (v === 'fuzzy' || v === 'known' || v === 'unknown') return v;
-  return 'unknown';
+  return v === 'known' || v === 'fuzzy' || v === 'unknown' ? v : 'unknown';
 }
 
-function setMasteryValue(id, level) {
+function setMastery(id, level) {
   masteryMap[String(id)] = level;
   saveMastery();
 }
@@ -65,11 +63,8 @@ function applyTheme(theme) {
         ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css'
         : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css';
   }
-  const btn = $('theme-toggle');
-  if (btn) {
-    btn.textContent = next === 'light' ? '☀' : '☾';
-    btn.title = next === 'light' ? '切换到深色' : '切换到浅色';
-  }
+  const btn = $('btn-theme');
+  if (btn) btn.textContent = next === 'light' ? '☀' : '☾';
   try {
     localStorage.setItem(THEME_KEY, next);
   } catch {
@@ -80,24 +75,18 @@ function applyTheme(theme) {
 function initTheme() {
   let theme = 'dark';
   try {
-    const saved = localStorage.getItem(THEME_KEY);
-    if (saved === 'light' || saved === 'dark') theme = saved;
+    const s = localStorage.getItem(THEME_KEY);
+    if (s === 'light' || s === 'dark') theme = s;
   } catch {
     /* ignore */
   }
   applyTheme(theme);
-  $('theme-toggle')?.addEventListener('click', () => {
-    const cur = document.documentElement.getAttribute('data-theme');
-    applyTheme(cur === 'light' ? 'dark' : 'light');
-  });
 }
 
-function filteredBase() {
+function filtered() {
   if (!catalog) return [];
   let list = catalog.problems.slice();
-  if (state.category !== 'all') {
-    list = list.filter((p) => p.category === state.category);
-  }
+  if (state.category !== 'all') list = list.filter((p) => p.category === state.category);
   const mf = state.masteryFilter;
   if (mf === 'stub') list = list.filter((p) => p.status === 'stub');
   else if (mf === 'unknown' || mf === 'fuzzy' || mf === 'known') {
@@ -107,19 +96,14 @@ function filteredBase() {
 }
 
 function rebuildDeck({ keepId = null, shuffle = false } = {}) {
-  let list = filteredBase();
+  let list = filtered();
   if (shuffle) {
     for (let i = list.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [list[i], list[j]] = [list[j], list[i]];
     }
   } else {
-    list.sort((a, b) => {
-      const ao = a.categoryOrder ?? 0;
-      const bo = b.categoryOrder ?? 0;
-      if (ao !== bo) return ao - bo;
-      return Number(a.id) - Number(b.id);
-    });
+    list.sort((a, b) => (a.categoryOrder - b.categoryOrder) || (Number(a.id) - Number(b.id)));
   }
   state.deck = list;
   if (!list.length) {
@@ -138,111 +122,143 @@ function current() {
   return state.deck[state.index] || null;
 }
 
-function fillCategories() {
-  const sel = $('cat-select');
-  if (!sel || !catalog) return;
-  const prev = state.category;
-  sel.innerHTML = '';
-  const all = document.createElement('option');
-  all.value = 'all';
-  all.textContent = `全部分类 (${catalog.problems.length})`;
-  sel.append(all);
-  for (const c of catalog.categories) {
-    const opt = document.createElement('option');
-    opt.value = c.name;
-    opt.textContent = `${c.name} (${c.count})`;
-    sel.append(opt);
-  }
-  sel.value = prev;
-  if (sel.value !== prev) {
-    state.category = 'all';
-    sel.value = 'all';
-  }
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
-function renderStats() {
-  if (!catalog) return;
-  let known = 0;
-  let fuzzy = 0;
-  let unknown = 0;
-  for (const p of catalog.problems) {
-    const m = getMastery(p.id);
-    if (m === 'known') known++;
-    else if (m === 'fuzzy') fuzzy++;
-    else unknown++;
-  }
-  const el = $('stats');
-  if (el) el.innerHTML = `记 <b>${known}</b> · 模 <b>${fuzzy}</b> · 不 <b>${unknown}</b>`;
+function listHtml(items) {
+  if (!items?.length) return '<li>暂无</li>';
+  return items.map((t) => `<li>${escapeHtml(t)}</li>`).join('');
 }
 
-function fillList(ul, items) {
-  ul.replaceChildren();
-  if (!items.length) {
-    const li = document.createElement('li');
-    li.textContent = '暂无';
-    ul.append(li);
-    return;
-  }
-  for (const t of items) {
-    const li = document.createElement('li');
-    li.textContent = String(t);
-    ul.append(li);
-  }
+function frontHtml(p) {
+  const m = getMastery(p.id);
+  const mLabel = p.status === 'stub' ? '待补全' : LABEL[m];
+  const mClass = p.status === 'stub' ? 'm-unknown' : `m-${m}`;
+  return `
+    <div class="front">
+      <div class="front-top">
+        <span class="badge">${escapeHtml(p.category || '—')}</span>
+        <span class="badge ${mClass}">${escapeHtml(mLabel)}</span>
+      </div>
+      <div class="front-body">
+        <div class="pid">#${escapeHtml(p.id)}</div>
+        <h1 class="ptitle">${escapeHtml(p.title || '')}</h1>
+        <p class="hint">想好后再显示答案</p>
+      </div>
+      <button type="button" class="reveal" data-act="show">显示答案</button>
+    </div>
+  `;
 }
 
-function showSide(side) {
-  state.side = side === 'back' ? 'back' : 'front';
-  const front = $('side-front');
-  const back = $('side-back');
-  const card = $('card');
-  if (!front || !back || !card) return;
-  const isBack = state.side === 'back';
-  front.hidden = isBack;
-  back.hidden = !isBack;
-  card.dataset.side = state.side;
-}
+function backHtml(p) {
+  const m = getMastery(p.id);
+  const hints = Array.isArray(p.hints) ? p.hints : [];
+  const notes = Array.isArray(p.notes) ? p.notes : [];
+  const hasCode = p.status !== 'stub' && !!p.code;
 
-function renderCode(p) {
-  const wrap = $('code-wrap');
-  const stub = $('stub-wrap');
-  const btn = $('btn-code');
-  const codeEl = $('back-code');
-  if (!wrap || !stub || !btn || !codeEl) return;
-
-  if (p.status === 'stub' || !p.code) {
-    wrap.hidden = true;
-    stub.hidden = false;
-    btn.hidden = true;
-    return;
+  let codeSection = '';
+  if (!hasCode) {
+    codeSection = `<div class="stub">待补全 — 笔记里还没有代码</div>`;
+  } else if (state.codeOpen) {
+    codeSection = `
+      <div class="code-head">
+        <h3>题解代码</h3>
+        <button type="button" class="ghost" data-act="toggle-code">收起</button>
+      </div>
+      <pre class="codebox"><code class="language-go" id="code-el"></code></pre>
+    `;
+  } else {
+    codeSection = `
+      <div class="code-head">
+        <h3>题解代码</h3>
+        <button type="button" class="ghost" data-act="toggle-code">展开代码</button>
+      </div>
+    `;
   }
 
-  stub.hidden = true;
-  btn.hidden = false;
-  btn.textContent = state.codeOpen ? '收起代码' : '展开代码';
-  wrap.hidden = !state.codeOpen;
-  if (state.codeOpen) {
-    codeEl.textContent = p.code;
-    if (window.hljs) {
-      codeEl.className = 'language-go';
-      try {
-        window.hljs.highlightElement(codeEl);
-      } catch {
-        /* ignore */
+  const notesBlock = notes.length
+    ? `<div class="block"><h3>易错 / 补充</h3><ul>${listHtml(notes)}</ul></div>`
+    : '';
+
+  const lc = p.url
+    ? `<a class="ghost" href="${escapeHtml(p.url)}" target="_blank" rel="noopener">LeetCode</a>`
+    : '';
+
+  return `
+    <div class="back">
+      <div class="back-head">
+        <h2 class="back-title">#${escapeHtml(p.id)} ${escapeHtml(p.title || '')}</h2>
+        <div class="back-actions">
+          ${lc}
+          <button type="button" class="ghost" data-act="hide">回到正面</button>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="block">
+          <h3>思路要点</h3>
+          <ul>${listHtml(hints)}</ul>
+        </div>
+        ${notesBlock}
+        <div class="block">${codeSection}</div>
+      </div>
+      <div class="rate">
+        <button type="button" class="again ${m === 'unknown' ? 'is-on' : ''}" data-act="rate" data-level="unknown">不会</button>
+        <button type="button" class="hard ${m === 'fuzzy' ? 'is-on' : ''}" data-act="rate" data-level="fuzzy">模糊</button>
+        <button type="button" class="good ${m === 'known' ? 'is-on' : ''}" data-act="rate" data-level="known">记住了</button>
+      </div>
+    </div>
+  `;
+}
+
+function paintFace(html, { animate = false } = {}) {
+  const face = $('face');
+  if (!face) return;
+
+  const apply = () => {
+    face.innerHTML = html;
+    face.classList.remove('is-leaving');
+    // inject code text safely after HTML paint
+    const p = current();
+    const codeEl = $('code-el');
+    if (p && codeEl && state.codeOpen && p.code) {
+      codeEl.textContent = p.code;
+      if (window.hljs) {
+        try {
+          window.hljs.highlightElement(codeEl);
+        } catch {
+          /* ignore */
+        }
       }
     }
+    if (animate) {
+      face.classList.add('is-entering');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          face.classList.remove('is-entering');
+        });
+      });
+    }
+  };
+
+  if (!animate || state.animating) {
+    apply();
+    return;
   }
+
+  state.animating = true;
+  face.classList.add('is-leaving');
+  window.setTimeout(() => {
+    apply();
+    state.animating = false;
+  }, 180);
 }
 
-function renderMastery(p) {
-  const level = getMastery(p.id);
-  const wrap = $('mastery-btns');
-  if (!wrap) return;
-  for (const btn of wrap.querySelectorAll('.m-btn')) {
-    btn.classList.toggle('is-active', btn.getAttribute('data-level') === level);
-  }
-}
-
-function renderCard() {
+function render({ animate = false } = {}) {
   const p = current();
   const empty = $('empty');
   const card = $('card');
@@ -257,56 +273,21 @@ function renderCard() {
 
   if (empty) empty.hidden = true;
   if (card) card.hidden = false;
-  if (progress) progress.textContent = `${state.index + 1} / ${state.deck.length}`;
+  if (progress) progress.textContent = `${state.index + 1}  /  ${state.deck.length}`;
 
-  const m = getMastery(p.id);
-  const mLabel = p.status === 'stub' ? '待补全' : MASTERY_LABELS[m];
-
-  $('front-cat').textContent = p.category || '—';
-  const fm = $('front-mastery');
-  fm.textContent = mLabel;
-  fm.dataset.level = p.status === 'stub' ? 'unknown' : m;
-  $('front-pos').textContent = `${state.index + 1} / ${state.deck.length}`;
-  $('front-id').textContent = `#${p.id}`;
-  $('front-title').textContent = p.title || '—';
-
-  $('back-cat').textContent = p.category || '—';
-  $('back-title').textContent = `#${p.id}  ${p.title || ''}`;
-  const lc = $('back-lc');
-  if (lc) {
-    if (p.url) {
-      lc.href = p.url;
-      lc.hidden = false;
-    } else {
-      lc.hidden = true;
-    }
-  }
-
-  fillList($('back-hints'), Array.isArray(p.hints) ? p.hints : []);
-
-  const notes = Array.isArray(p.notes) ? p.notes : [];
-  const notesPanel = $('notes-panel');
-  if (notesPanel) {
-    if (notes.length) {
-      notesPanel.hidden = false;
-      fillList($('back-notes'), notes);
-    } else {
-      notesPanel.hidden = true;
-    }
-  }
-
-  renderCode(p);
-  renderMastery(p);
-  showSide(state.side);
+  const html = state.showing === 'back' ? backHtml(p) : frontHtml(p);
+  const face = $('face');
+  if (face) face.dataset.showing = state.showing;
+  paintFace(html, { animate });
 }
 
-function goTo(index) {
+function goTo(i, { animate = true } = {}) {
   if (!state.deck.length) return;
   const n = state.deck.length;
-  state.index = ((index % n) + n) % n;
-  state.side = 'front';
+  state.index = ((i % n) + n) % n;
+  state.showing = 'front';
   state.codeOpen = false;
-  renderCard();
+  render({ animate });
 }
 
 function next() {
@@ -326,91 +307,163 @@ function randomOne() {
   goTo(i);
 }
 
-function shuffleDeck() {
+function shuffle() {
   rebuildDeck({ shuffle: true });
   state.index = 0;
-  state.side = 'front';
+  state.showing = 'front';
   state.codeOpen = false;
-  renderCard();
+  render({ animate: true });
 }
 
-function onFilterChange() {
-  state.index = 0;
-  state.side = 'front';
+function showAnswer() {
+  state.showing = 'back';
+  render({ animate: true });
+}
+
+function hideAnswer() {
+  state.showing = 'front';
   state.codeOpen = false;
-  rebuildDeck({ shuffle: false });
-  renderCard();
+  render({ animate: true });
+}
+
+function toggleCode() {
+  state.codeOpen = !state.codeOpen;
+  // no leave animation for code toggle — keep side
+  render({ animate: false });
+}
+
+function rate(level) {
+  const p = current();
+  if (!p) return;
+  setMastery(p.id, level);
+  const keepId = p.id;
+  rebuildDeck({ keepId });
+  if (!state.deck.length) {
+    render({ animate: false });
+    return;
+  }
+  const idx = state.deck.findIndex((x) => String(x.id) === String(keepId));
+  state.index = idx >= 0 ? idx : Math.min(state.index, state.deck.length - 1);
+  // Anki-like: after rating, go next
+  if (state.deck.length > 1) {
+    // move to next in deck after current
+    const nextIdx = (state.index + 1) % state.deck.length;
+    state.index = nextIdx;
+    state.showing = 'front';
+    state.codeOpen = false;
+    render({ animate: true });
+  } else {
+    render({ animate: false });
+  }
+}
+
+function fillCategories() {
+  const sel = $('cat');
+  if (!sel || !catalog) return;
+  const prev = state.category;
+  sel.innerHTML = '';
+  const all = document.createElement('option');
+  all.value = 'all';
+  all.textContent = `全部分类 (${catalog.problems.length})`;
+  sel.append(all);
+  for (const c of catalog.categories) {
+    const o = document.createElement('option');
+    o.value = c.name;
+    o.textContent = `${c.name} (${c.count})`;
+    sel.append(o);
+  }
+  sel.value = prev;
+  if (sel.value !== prev) {
+    state.category = 'all';
+    sel.value = 'all';
+  }
+}
+
+function onFilter() {
+  state.index = 0;
+  state.showing = 'front';
+  state.codeOpen = false;
+  rebuildDeck();
+  render({ animate: true });
 }
 
 function bind() {
-  $('cat-select')?.addEventListener('change', (e) => {
-    state.category = e.target.value;
-    onFilterChange();
-  });
-  $('mastery-select')?.addEventListener('change', (e) => {
-    state.masteryFilter = e.target.value;
-    onFilterChange();
-  });
+  const app = $('app');
+  if (!app) return;
 
-  $('btn-prev')?.addEventListener('click', prev);
-  $('btn-next')?.addEventListener('click', next);
-  $('btn-shuffle')?.addEventListener('click', shuffleDeck);
-  $('btn-random')?.addEventListener('click', randomOne);
+  // Single delegated click handler — never misses re-rendered buttons
+  app.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!(t instanceof Element)) return;
+    const el = t.closest('[data-act]');
+    if (!el) return;
+    const act = el.getAttribute('data-act');
+    if (!act) return;
 
-  // Reliable show/hide — no 3D hit-testing issues
-  $('btn-show')?.addEventListener('click', () => {
-    state.side = 'back';
-    renderCard();
-  });
-  $('btn-hide')?.addEventListener('click', () => {
-    state.side = 'front';
-    renderCard();
-  });
+    e.preventDefault();
 
-  $('btn-code')?.addEventListener('click', () => {
-    state.codeOpen = !state.codeOpen;
-    const p = current();
-    if (p) renderCode(p);
-  });
-
-  $('mastery-btns')?.addEventListener('click', (e) => {
-    const btn = e.target.closest('.m-btn');
-    if (!btn) return;
-    const level = btn.getAttribute('data-level');
-    const p = current();
-    if (!p || !level) return;
-    setMasteryValue(p.id, level);
-    renderStats();
-    const keepId = p.id;
-    rebuildDeck({ keepId });
-    if (!state.deck.length) {
-      renderCard();
-      return;
+    switch (act) {
+      case 'show':
+        showAnswer();
+        break;
+      case 'hide':
+        hideAnswer();
+        break;
+      case 'toggle-code':
+        toggleCode();
+        break;
+      case 'prev':
+        prev();
+        break;
+      case 'next':
+        next();
+        break;
+      case 'random':
+        randomOne();
+        break;
+      case 'shuffle':
+        shuffle();
+        break;
+      case 'rate': {
+        const level = el.getAttribute('data-level');
+        if (level === 'unknown' || level === 'fuzzy' || level === 'known') rate(level);
+        break;
+      }
+      default:
+        break;
     }
-    const idx = state.deck.findIndex((x) => String(x.id) === String(keepId));
-    state.index = idx >= 0 ? idx : Math.min(state.index, state.deck.length - 1);
-    renderCard();
+  });
+
+  $('btn-theme')?.addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    applyTheme(cur === 'light' ? 'dark' : 'light');
+  });
+
+  $('cat')?.addEventListener('change', (e) => {
+    state.category = e.target.value;
+    onFilter();
+  });
+  $('mastery')?.addEventListener('change', (e) => {
+    state.masteryFilter = e.target.value;
+    onFilter();
   });
 
   document.addEventListener('keydown', (e) => {
-    const tag = (e.target && e.target.tagName) || '';
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON') {
-      // still allow shortcuts when focus not in text field except space on buttons
-      if (tag === 'SELECT' || tag === 'INPUT' || tag === 'TEXTAREA') return;
-    }
+    const tag = e.target && e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
     if (e.key === ' ' || e.code === 'Space') {
-      if (tag === 'BUTTON') return;
       e.preventDefault();
-      state.side = state.side === 'front' ? 'back' : 'front';
-      renderCard();
+      if (state.showing === 'front') showAnswer();
+      else hideAnswer();
       return;
     }
-    if (e.key === 'ArrowRight' || e.key === 'j' || e.key === 'J') {
+    if (e.key === 'ArrowRight' || e.key === 'j') {
       e.preventDefault();
       next();
       return;
     }
-    if (e.key === 'ArrowLeft' || e.key === 'k' || e.key === 'K') {
+    if (e.key === 'ArrowLeft' || e.key === 'k') {
       e.preventDefault();
       prev();
       return;
@@ -418,6 +471,19 @@ function bind() {
     if (e.key === 'r' || e.key === 'R') {
       e.preventDefault();
       randomOne();
+      return;
+    }
+    if (state.showing === 'back') {
+      if (e.key === '1') {
+        e.preventDefault();
+        rate('unknown');
+      } else if (e.key === '2') {
+        e.preventDefault();
+        rate('fuzzy');
+      } else if (e.key === '3') {
+        e.preventDefault();
+        rate('known');
+      }
     }
   });
 }
@@ -428,22 +494,20 @@ async function main() {
   bind();
 
   const res = await fetch('./problems.json');
-  if (!res.ok) throw new Error('load failed');
+  if (!res.ok) throw new Error('problems.json load failed');
   catalog = await res.json();
   if (!catalog?.problems?.length) throw new Error('empty catalog');
 
   fillCategories();
   rebuildDeck();
-  renderStats();
-  renderCard();
+  render({ animate: false });
 }
 
 main().catch((err) => {
   console.error(err);
-  const t = $('front-title');
-  if (t) t.textContent = '加载失败，请刷新';
-  const card = $('card');
-  if (card) card.hidden = false;
-  const front = $('side-front');
-  if (front) front.hidden = false;
+  const empty = $('empty');
+  if (empty) {
+    empty.hidden = false;
+    empty.textContent = '加载失败，请刷新页面';
+  }
 });
