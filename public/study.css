@@ -342,6 +342,36 @@ html, body {
   font-weight: 700;
 }
 
+.pane-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-bottom: 10px;
+}
+
+.pane-head .pane-title {
+  margin: 0;
+}
+
+.copy-btn {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.copy-btn.is-copied {
+  border-color: color-mix(in srgb, var(--good) 45%, var(--line));
+  color: var(--good);
+}
+
+.copy-btn.is-failed {
+  border-color: color-mix(in srgb, var(--again) 45%, var(--line));
+  color: var(--again);
+}
+
 .pane-left {
   overflow: auto;
 }

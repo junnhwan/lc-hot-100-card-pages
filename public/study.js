@@ -179,6 +179,13 @@ function backHtml(p) {
     ? `<a class="ghost" href="${escapeHtml(p.url)}" target="_blank" rel="noopener">LeetCode</a>`
     : '';
 
+  const codeTitle = hasCode
+    ? `<div class="pane-head">
+          <h3 class="pane-title">题解代码</h3>
+          <button type="button" class="ghost copy-btn" data-act="copy-code" title="复制代码">复制</button>
+        </div>`
+    : `<h3 class="pane-title">题解代码</h3>`;
+
   return `
     <div class="back">
       <div class="back-head">
@@ -198,7 +205,7 @@ function backHtml(p) {
           ${notesBlock}
         </section>
         <section class="pane pane-right">
-          <h3 class="pane-title">题解代码</h3>
+          ${codeTitle}
           ${codeBody}
         </section>
       </div>
@@ -338,6 +345,51 @@ function toggleCode() {
   render({ animate: false });
 }
 
+async function copyCode(btn) {
+  const p = current();
+  if (!p?.code) return;
+
+  let ok = false;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(p.code);
+      ok = true;
+    }
+  } catch {
+    ok = false;
+  }
+
+  // Fallback for insecure contexts / blocked clipboard API
+  if (!ok) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = p.code;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+    } catch {
+      ok = false;
+    }
+  }
+
+  if (!(btn instanceof HTMLElement)) return;
+  const prev = btn.textContent;
+  btn.textContent = ok ? '已复制' : '复制失败';
+  btn.classList.toggle('is-copied', ok);
+  btn.classList.toggle('is-failed', !ok);
+  window.setTimeout(() => {
+    // button may have been re-rendered away
+    if (document.body.contains(btn)) {
+      btn.textContent = prev || '复制';
+      btn.classList.remove('is-copied', 'is-failed');
+    }
+  }, 1200);
+}
+
 function rate(level) {
   const p = current();
   if (!p) return;
@@ -417,6 +469,9 @@ function bind() {
         break;
       case 'toggle-code':
         toggleCode();
+        break;
+      case 'copy-code':
+        copyCode(el);
         break;
       case 'prev':
         prev();
