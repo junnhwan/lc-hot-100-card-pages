@@ -21,6 +21,8 @@ const state = {
   showing: 'front', // front | back
   codeOpen: false,
   animating: false,
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  animTimer: null,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -219,12 +221,12 @@ function paintFace(html, { animate = false } = {}) {
   const face = $('face');
   if (!face) return;
 
-  const apply = () => {
+  const apply = (withEnter) => {
     face.innerHTML = html;
-    face.classList.remove('is-leaving');
-    // inject code text safely after HTML paint
+    face.classList.remove('is-leaving', 'is-entering');
+    // inject code text safely after HTML paint (never put code in template HTML)
     const p = current();
-    const codeEl = $('code-el');
+    const codeEl = document.getElementById('code-el');
     if (p && codeEl && state.codeOpen && p.code) {
       codeEl.textContent = p.code;
       if (window.hljs) {
@@ -235,7 +237,7 @@ function paintFace(html, { animate = false } = {}) {
         }
       }
     }
-    if (animate) {
+    if (withEnter) {
       face.classList.add('is-entering');
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -245,17 +247,26 @@ function paintFace(html, { animate = false } = {}) {
     }
   };
 
-  if (!animate || state.animating) {
-    apply();
+  // Cancel any in-flight leave animation so rapid clicks never stick on opacity:0
+  if (state.animTimer != null) {
+    clearTimeout(state.animTimer);
+    state.animTimer = null;
+    state.animating = false;
+    face.classList.remove('is-leaving');
+  }
+
+  if (!animate) {
+    apply(false);
     return;
   }
 
   state.animating = true;
   face.classList.add('is-leaving');
-  window.setTimeout(() => {
-    apply();
+  state.animTimer = setTimeout(() => {
+    state.animTimer = null;
     state.animating = false;
-  }, 180);
+    apply(true);
+  }, 160);
 }
 
 function render({ animate = false } = {}) {
