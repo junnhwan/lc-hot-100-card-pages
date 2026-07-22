@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LC Hot 100 速记</title>
   <link rel="stylesheet" href="./styles.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"
+    id="hljs-theme"
+  />
 </head>
 <body>
   <header id="topbar">
@@ -40,11 +45,12 @@
       </div>
       <div class="sidebar-section">
         <div class="sidebar-heading">筛选</div>
-        <div id="filter-chips" class="filter-chips" aria-label="掌握度筛选（占位）">
-          <button type="button" class="chip chip-stub" disabled data-filter="all">全部</button>
-          <button type="button" class="chip chip-stub" disabled data-filter="known">已掌握</button>
-          <button type="button" class="chip chip-stub" disabled data-filter="fuzzy">模糊</button>
-          <button type="button" class="chip chip-stub" disabled data-filter="unknown">未掌握</button>
+        <div id="filter-chips" class="filter-chips" aria-label="掌握度筛选">
+          <button type="button" class="chip is-active" data-filter="all">全部</button>
+          <button type="button" class="chip" data-filter="unknown">不会</button>
+          <button type="button" class="chip" data-filter="fuzzy">模糊</button>
+          <button type="button" class="chip" data-filter="known">记住了</button>
+          <button type="button" class="chip" data-filter="stub">待补全</button>
         </div>
       </div>
     </aside>
@@ -56,6 +62,8 @@
 
   <div id="overlay" class="overlay" hidden aria-hidden="true"></div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/go.min.js"></script>
   <script type="module" src="./app.js"></script>
 </body>
 </html>
