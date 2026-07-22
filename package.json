@@ -1,0 +1,10 @@
+{
+  "name": "lc-hot-100-card-pages",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-data.mjs",
+    "test": "node --test tests/**/*.test.mjs",
+    "preview": "npx --yes serve public -p 4173"
+  }
+}
