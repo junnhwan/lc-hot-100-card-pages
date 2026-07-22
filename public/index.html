@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Source+Sans+3:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./study.css?v=5" />
+  <link rel="stylesheet" href="./study.css?v=6" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" id="hljs-theme" />
 </head>
 <body>
@@ -46,13 +46,23 @@
     </main>
 
     <nav class="nav">
-      <button type="button" class="nav-btn" data-act="prev">上一题</button>
-      <button type="button" class="nav-btn nav-primary" data-act="next">下一题</button>
+      <button type="button" class="nav-btn" data-act="prev" title="快捷键 ← 或 K">上一题</button>
+      <button type="button" class="nav-btn nav-primary" data-act="next" title="快捷键 → 或 J">下一题</button>
     </nav>
+
+    <p class="kbd-hint" title="背面评分：1 不会 · 2 模糊 · 3 记住了">
+      <kbd>空格</kbd> 显示/收起答案
+      <span class="dot">·</span>
+      <kbd>←</kbd><kbd>→</kbd> 切题
+      <span class="dot">·</span>
+      <kbd>R</kbd> 随机
+      <span class="dot">·</span>
+      <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 评分
+    </p>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/go.min.js"></script>
-  <script type="module" src="./study.js?v=5"></script>
+  <script type="module" src="./study.js?v=6"></script>
 </body>
 </html>

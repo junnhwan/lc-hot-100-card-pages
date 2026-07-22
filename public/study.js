@@ -152,7 +152,7 @@ function frontHtml(p) {
         <h1 class="ptitle">${escapeHtml(p.title || '')}</h1>
         <p class="hint">想好后再显示答案</p>
       </div>
-      <button type="button" class="reveal" data-act="show">显示答案</button>
+      <button type="button" class="reveal" data-act="show" title="快捷键 空格">显示答案 <span class="btn-kbd">空格</span></button>
     </div>
   `;
 }
@@ -197,7 +197,7 @@ function backHtml(p) {
         <h2 class="back-title">#${escapeHtml(p.id)} ${escapeHtml(p.title || '')}</h2>
         <div class="back-actions">
           ${lc}
-          <button type="button" class="ghost" data-act="hide">回到正面</button>
+          <button type="button" class="ghost" data-act="hide" title="快捷键 空格">回到正面 <span class="btn-kbd">空格</span></button>
         </div>
       </div>
       <div class="scroll">
@@ -209,9 +209,9 @@ function backHtml(p) {
         <div class="block">${codeSection}</div>
       </div>
       <div class="rate">
-        <button type="button" class="again ${m === 'unknown' ? 'is-on' : ''}" data-act="rate" data-level="unknown">不会</button>
-        <button type="button" class="hard ${m === 'fuzzy' ? 'is-on' : ''}" data-act="rate" data-level="fuzzy">模糊</button>
-        <button type="button" class="good ${m === 'known' ? 'is-on' : ''}" data-act="rate" data-level="known">记住了</button>
+        <button type="button" class="again ${m === 'unknown' ? 'is-on' : ''}" data-act="rate" data-level="unknown" title="快捷键 1">不会 <span class="btn-kbd">1</span></button>
+        <button type="button" class="hard ${m === 'fuzzy' ? 'is-on' : ''}" data-act="rate" data-level="fuzzy" title="快捷键 2">模糊 <span class="btn-kbd">2</span></button>
+        <button type="button" class="good ${m === 'known' ? 'is-on' : ''}" data-act="rate" data-level="known" title="快捷键 3">记住了 <span class="btn-kbd">3</span></button>
       </div>
     </div>
   `;
