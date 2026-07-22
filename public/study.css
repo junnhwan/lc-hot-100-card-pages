@@ -342,22 +342,98 @@ html, body {
 
 .codebox {
   margin: 0;
-  max-height: 240px;
+  max-height: min(52vh, 420px);
   overflow: auto;
   border-radius: 10px;
-  border: 1px solid var(--line);
-  background: #0b0d12;
-  padding: 12px;
+  border: 1px solid #3a4558;
+  background: #0d1117;
+  padding: 14px 16px;
+  -webkit-font-smoothing: antialiased;
 }
-html[data-theme="light"] .codebox { background: #1a1f2a; }
+html[data-theme="light"] .codebox {
+  background: #f6f8fa;
+  border-color: #d0d7de;
+}
 
 .codebox code {
   font-family: var(--mono);
-  font-size: 12.5px;
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.65;
+  letter-spacing: 0.01em;
   background: transparent !important;
   padding: 0 !important;
-  color: #c9d2e0;
+  color: #e6edf3 !important;
+  font-weight: 450;
+  tab-size: 4;
+}
+
+/* Keep hljs tokens readable; avoid washed-out greys */
+.codebox .hljs {
+  color: #e6edf3 !important;
+  background: transparent !important;
+}
+.codebox .hljs-keyword,
+.codebox .hljs-selector-tag,
+.codebox .hljs-literal {
+  color: #ff7b72 !important;
+  font-weight: 600;
+}
+.codebox .hljs-built_in,
+.codebox .hljs-type {
+  color: #79c0ff !important;
+}
+.codebox .hljs-string,
+.codebox .hljs-attr {
+  color: #a5d6ff !important;
+}
+.codebox .hljs-number,
+.codebox .hljs-symbol {
+  color: #79c0ff !important;
+}
+.codebox .hljs-comment {
+  color: #8b949e !important;
+  font-style: italic;
+}
+.codebox .hljs-title,
+.codebox .hljs-title.function_ {
+  color: #d2a8ff !important;
+  font-weight: 600;
+}
+.codebox .hljs-params,
+.codebox .hljs-variable {
+  color: #ffa657 !important;
+}
+
+html[data-theme="light"] .codebox code,
+html[data-theme="light"] .codebox .hljs {
+  color: #1f2328 !important;
+}
+html[data-theme="light"] .codebox .hljs-keyword,
+html[data-theme="light"] .codebox .hljs-selector-tag,
+html[data-theme="light"] .codebox .hljs-literal {
+  color: #cf222e !important;
+}
+html[data-theme="light"] .codebox .hljs-built_in,
+html[data-theme="light"] .codebox .hljs-type {
+  color: #0550ae !important;
+}
+html[data-theme="light"] .codebox .hljs-string,
+html[data-theme="light"] .codebox .hljs-attr {
+  color: #0a3069 !important;
+}
+html[data-theme="light"] .codebox .hljs-number {
+  color: #0550ae !important;
+}
+html[data-theme="light"] .codebox .hljs-comment {
+  color: #6e7781 !important;
+}
+html[data-theme="light"] .codebox .hljs-title,
+html[data-theme="light"] .codebox .hljs-title.function_ {
+  color: #8250df !important;
+}
+html[data-theme="light"] .codebox .hljs-params,
+html[data-theme="light"] .codebox .hljs-variable {
+  color: #953800 !important;
 }
 
 .stub {

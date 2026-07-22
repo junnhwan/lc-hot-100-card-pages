@@ -19,7 +19,7 @@ const state = {
   deck: /** @type {any[]} */ ([]),
   index: 0,
   showing: 'front', // front | back
-  codeOpen: false,
+  codeOpen: true, // answer side: code expanded by default
   animating: false,
   /** @type {ReturnType<typeof setTimeout> | null} */
   animTimer: null,
@@ -297,7 +297,7 @@ function goTo(i, { animate = true } = {}) {
   const n = state.deck.length;
   state.index = ((i % n) + n) % n;
   state.showing = 'front';
-  state.codeOpen = false;
+  state.codeOpen = true;
   render({ animate });
 }
 
@@ -322,18 +322,19 @@ function shuffle() {
   rebuildDeck({ shuffle: true });
   state.index = 0;
   state.showing = 'front';
-  state.codeOpen = false;
+  state.codeOpen = true;
   render({ animate: true });
 }
 
 function showAnswer() {
   state.showing = 'back';
+  state.codeOpen = true; // default expanded when revealing answer
   render({ animate: true });
 }
 
 function hideAnswer() {
   state.showing = 'front';
-  state.codeOpen = false;
+  state.codeOpen = true;
   render({ animate: true });
 }
 
@@ -361,7 +362,7 @@ function rate(level) {
     const nextIdx = (state.index + 1) % state.deck.length;
     state.index = nextIdx;
     state.showing = 'front';
-    state.codeOpen = false;
+    state.codeOpen = true;
     render({ animate: true });
   } else {
     render({ animate: false });
@@ -393,7 +394,7 @@ function fillCategories() {
 function onFilter() {
   state.index = 0;
   state.showing = 'front';
-  state.codeOpen = false;
+  state.codeOpen = true;
   rebuildDeck();
   render({ animate: true });
 }
