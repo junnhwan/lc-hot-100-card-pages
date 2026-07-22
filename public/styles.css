@@ -121,6 +121,35 @@ body {
   justify-content: flex-end;
 }
 
+.study-entry {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #1a1208;
+  background: linear-gradient(180deg, #f0c98a, #e8b86d);
+  border: 1px solid transparent;
+  box-shadow: 0 6px 16px rgba(232, 184, 109, 0.22);
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.study-entry:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  color: #1a1208;
+}
+
+html[data-theme="light"] .study-entry {
+  color: #fffaf2;
+  background: linear-gradient(180deg, #c48a32, #b07a28);
+}
+
 .search-wrap {
   position: relative;
   display: flex;

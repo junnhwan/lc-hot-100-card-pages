@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>专注刷卡 · LC Hot 100</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="./study.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"
+    id="hljs-theme"
+  />
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true">
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="grain"></div>
+  </div>
+
+  <header class="study-top">
+    <a class="back-link" href="./index.html">
+      <span class="back-arrow" aria-hidden="true">←</span>
+      题库列表
+    </a>
+    <div class="study-brand">
+      <span class="brand-dot" aria-hidden="true"></span>
+      <span class="brand-text">专注刷卡</span>
+    </div>
+    <div class="study-top-right">
+      <div id="study-stats" class="study-stats" aria-live="polite"></div>
+      <button id="theme-toggle" type="button" class="icon-btn" title="切换主题" aria-label="切换主题">
+        <span class="theme-icon" aria-hidden="true">☾</span>
+      </button>
+    </div>
+  </header>
+
+  <section class="controls" aria-label="筛选与导航">
+    <div class="controls-row">
+      <label class="field">
+        <span class="field-label">分类</span>
+        <select id="cat-select" class="select"></select>
+      </label>
+      <label class="field">
+        <span class="field-label">掌握度</span>
+        <select id="mastery-select" class="select">
+          <option value="all">全部</option>
+          <option value="unknown">不会</option>
+          <option value="fuzzy">模糊</option>
+          <option value="known">记住了</option>
+          <option value="stub">待补全</option>
+        </select>
+      </label>
+      <div class="field field-progress">
+        <span class="field-label">进度</span>
+        <div id="progress-text" class="progress-text">—</div>
+      </div>
+    </div>
+    <div class="controls-row controls-actions">
+      <button type="button" id="btn-shuffle" class="btn btn-ghost">随机打乱</button>
+      <button type="button" id="btn-random" class="btn btn-ghost">随机一题</button>
+      <div class="nav-cluster">
+        <button type="button" id="btn-prev" class="btn btn-nav" aria-label="上一题">‹ 上一题</button>
+        <button type="button" id="btn-next" class="btn btn-nav btn-primary" aria-label="下一题">下一题 ›</button>
+      </div>
+    </div>
+  </section>
+
+  <main class="stage" id="stage">
+    <div class="empty" id="empty" hidden>
+      <p class="empty-title">这个筛选下没有题目</p>
+      <p class="empty-sub">换个分类或掌握度试试</p>
+    </div>
+
+    <div class="deck" id="deck">
+      <div class="card-scene">
+        <div class="flashcard" id="flashcard" data-flipped="false">
+          <div class="face face-front">
+            <div class="face-chrome">
+              <span class="pill" id="front-cat">—</span>
+              <span class="pill pill-mastery" id="front-mastery">—</span>
+              <span class="pill pill-muted" id="front-index">—</span>
+            </div>
+            <div class="face-body">
+              <p class="id-line" id="front-id">#</p>
+              <h2 class="title-line" id="front-title">加载中…</h2>
+              <p class="prompt-line">先自己过一遍思路，再翻面或揭晓</p>
+            </div>
+            <div class="face-footer">
+              <button type="button" class="btn btn-flip" id="btn-flip-front">翻面看思路</button>
+              <span class="hint-keys">Space 翻面 · ← → 切题</span>
+            </div>
+          </div>
+          <div class="face face-back">
+            <div class="face-chrome">
+              <span class="pill" id="back-cat">—</span>
+              <a class="pill pill-link" id="back-lc" href="#" target="_blank" rel="noopener">LeetCode ↗</a>
+              <button type="button" class="pill pill-btn" id="btn-flip-back">回到正面</button>
+            </div>
+            <div class="face-scroll">
+              <h2 class="back-title" id="back-title">—</h2>
+
+              <section class="block">
+                <header class="block-head">
+                  <h3>思路要点</h3>
+                  <button type="button" class="linkish" id="btn-toggle-hints">收起</button>
+                </header>
+                <ul class="hint-list" id="back-hints"></ul>
+              </section>
+
+              <section class="block" id="notes-block" hidden>
+                <header class="block-head">
+                  <h3>易错 / 补充</h3>
+                </header>
+                <ul class="note-list" id="back-notes"></ul>
+              </section>
+
+              <section class="block">
+                <header class="block-head">
+                  <h3>题解代码</h3>
+                  <button type="button" class="linkish" id="btn-toggle-code">展开代码</button>
+                </header>
+                <div id="code-panel" class="code-panel" hidden>
+                  <pre class="code-pre"><code class="language-go" id="back-code"></code></pre>
+                </div>
+                <div id="stub-panel" class="stub-panel" hidden>待补全 — 这题笔记里还没有有效代码</div>
+              </section>
+            </div>
+            <div class="face-footer mastery-footer">
+              <span class="mastery-label">掌握度</span>
+              <div class="mastery-btns" id="mastery-btns" role="group" aria-label="掌握度">
+                <button type="button" class="m-btn" data-level="unknown">不会</button>
+                <button type="button" class="m-btn" data-level="fuzzy">模糊</button>
+                <button type="button" class="m-btn" data-level="known">记住了</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="study-foot">
+    <p>一次只看一题 · 先想再揭 · 掌握度保存在本机</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/go.min.js"></script>
+  <script type="module" src="./study.js"></script>
+</body>
+</html>
