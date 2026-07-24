@@ -1,3 +1,7 @@
+import { applyThemeIcon, mountIcons, ICON } from './ui-icons.js';
+import { installAmbient } from './ui-ambient.js';
+import { runThemeTransition } from './ui-motion.js';
+
 const MASTER_KEY = 'lc-hot100-mastery';
 const THEME_KEY = 'lc-hot100-theme';
 
@@ -90,9 +94,14 @@ function setMastery(id, level) {
   saveMastery();
 }
 
-function applyTheme(theme) {
+function applyTheme(theme, { animate = false } = {}) {
   const next = theme === 'light' ? 'light' : 'dark';
+  if (animate) runThemeTransition();
   document.documentElement.setAttribute('data-theme', next);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute(
+    'content',
+    next === 'light' ? '#f3efe6' : '#06080c'
+  );
   const hljsLink = document.getElementById('hljs-theme');
   if (hljsLink) {
     hljsLink.href =
@@ -106,8 +115,7 @@ function applyTheme(theme) {
     btn.title = toLight ? '切换到浅色主题' : '切换到深色主题';
     btn.setAttribute('aria-label', btn.title);
     btn.setAttribute('aria-pressed', next === 'light' ? 'true' : 'false');
-    const icon = btn.querySelector('.theme-icon');
-    if (icon) icon.textContent = next === 'light' ? '☀' : '☾';
+    applyThemeIcon(btn, next);
   }
   try {
     localStorage.setItem(THEME_KEY, next);
@@ -128,7 +136,7 @@ function initTheme() {
 
   $('theme-toggle')?.addEventListener('click', () => {
     const cur = document.documentElement.getAttribute('data-theme');
-    applyTheme(cur === 'light' ? 'dark' : 'light');
+    applyTheme(cur === 'light' ? 'dark' : 'light', { animate: true });
   });
 }
 
@@ -299,7 +307,7 @@ function createMasteryToggles(p) {
       // re-render list so badge + filters stay consistent
       renderProblemList();
       renderStats();
-      if (state.mode) renderOverlay();
+      if (state.mode) afterMasteryInOverlay(p.id);
     });
     wrap.appendChild(btn);
   }
@@ -725,6 +733,33 @@ function modeNavigate(delta) {
 }
 
 /**
+ * After changing mastery inside card/quiz overlay:
+ * - still in filtered list → stay on it (updated badges)
+ * - dropped by filter → keep index (next problem slides in) as a fresh front
+ * - list empty → close overlay
+ * @param {string | number} problemId
+ */
+function afterMasteryInOverlay(problemId) {
+  const list = filteredProblems();
+  if (list.length === 0) {
+    closeOverlay();
+    return;
+  }
+  const still = list.findIndex((x) => String(x.id) === String(problemId));
+  if (still >= 0) {
+    state.modeIndex = still;
+    renderOverlay();
+    return;
+  }
+  // Filtered out: index already points at the next item that slid into place.
+  if (state.modeIndex >= list.length) state.modeIndex = list.length - 1;
+  if (state.modeIndex < 0) state.modeIndex = 0;
+  state.cardFlipped = false;
+  state.quizRevealed = false;
+  renderOverlay();
+}
+
+/**
  * Shared "back" content: full hints, notes, code, mastery.
  * @param {object} p
  * @param {{ encourageMastery?: boolean }} [opts]
@@ -885,14 +920,14 @@ function buildCardMode(p, index, total) {
 
   const prevBtn = document.createElement('button');
   prevBtn.type = 'button';
-  prevBtn.className = 'btn-action btn-secondary';
-  prevBtn.textContent = '← 上一题';
+  prevBtn.className = 'btn-action btn-secondary btn-with-icon';
+  prevBtn.innerHTML = `<span class="icon-slot" data-lucide="${ICON.chevronLeft}" aria-hidden="true"></span><span>上一题</span>`;
   prevBtn.addEventListener('click', () => modeNavigate(-1));
 
   const nextBtn = document.createElement('button');
   nextBtn.type = 'button';
-  nextBtn.className = 'btn-action btn-secondary';
-  nextBtn.textContent = '下一题 →';
+  nextBtn.className = 'btn-action btn-secondary btn-with-icon';
+  nextBtn.innerHTML = `<span>下一题</span><span class="icon-slot" data-lucide="${ICON.chevronRight}" aria-hidden="true"></span>`;
   nextBtn.addEventListener('click', () => modeNavigate(1));
 
   nav.append(prevBtn, nextBtn);
@@ -1001,7 +1036,11 @@ function renderOverlay() {
   closeBtn.type = 'button';
   closeBtn.className = 'overlay-close';
   closeBtn.setAttribute('aria-label', '关闭');
-  closeBtn.textContent = '×';
+  const closeIcon = document.createElement('span');
+  closeIcon.className = 'icon-slot';
+  closeIcon.setAttribute('data-lucide', ICON.x);
+  closeIcon.setAttribute('aria-hidden', 'true');
+  closeBtn.appendChild(closeIcon);
   closeBtn.addEventListener('click', () => closeOverlay());
 
   topBar.append(modeLabel, closeBtn);
@@ -1013,6 +1052,7 @@ function renderOverlay() {
 
   shell.append(topBar, content);
   el.appendChild(shell);
+  mountIcons(el);
 
   // click backdrop to close
   el.onclick = (e) => {
@@ -1073,16 +1113,19 @@ function bindOverlayKeys() {
 }
 
 async function main() {
+  installAmbient({ density: 0.9, intensity: 0.9 });
   initTheme();
   loadMastery();
   bindSearch();
   bindFilterChips();
   bindOverlayKeys();
+  await mountIcons(document);
 
   const res = await fetch('./problems.json');
   if (!res.ok) throw new Error('failed to load problems.json');
   const data = await res.json();
   render(data);
+  document.body.classList.add('is-ready');
 }
 
 main().catch((err) => {

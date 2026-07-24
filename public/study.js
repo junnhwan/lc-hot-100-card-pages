@@ -1,8 +1,12 @@
 /**
  * Anki-style single-card study page.
  * Event delegation only — no fragile per-button rebinding.
- * Front/back via re-render + CSS fade (no 3D).
+ * Front/back via re-render + spring face motion.
  */
+import { applyThemeIcon, iconAttr, mountIcons, ICON } from './ui-icons.js';
+import { installAmbient } from './ui-ambient.js';
+import { MOTION, motionMs, runThemeTransition } from './ui-motion.js';
+
 const MASTER_KEY = 'lc-hot100-mastery';
 const THEME_KEY = 'lc-hot100-theme';
 
@@ -19,8 +23,6 @@ const state = {
   deck: /** @type {any[]} */ ([]),
   index: 0,
   showing: 'front', // front | back
-  codeOpen: true, // answer side: code expanded by default
-  animating: false,
   /** @type {ReturnType<typeof setTimeout> | null} */
   animTimer: null,
 };
@@ -55,9 +57,14 @@ function setMastery(id, level) {
   saveMastery();
 }
 
-function applyTheme(theme) {
+function applyTheme(theme, { animate = false } = {}) {
   const next = theme === 'light' ? 'light' : 'dark';
+  if (animate) runThemeTransition();
   document.documentElement.setAttribute('data-theme', next);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute(
+    'content',
+    next === 'light' ? '#f3efe6' : '#06080c'
+  );
   const link = $('hljs-theme');
   if (link) {
     link.href =
@@ -65,8 +72,7 @@ function applyTheme(theme) {
         ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css'
         : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css';
   }
-  const btn = $('btn-theme');
-  if (btn) btn.textContent = next === 'light' ? '☀' : '☾';
+  applyThemeIcon($('btn-theme'), next);
   try {
     localStorage.setItem(THEME_KEY, next);
   } catch {
@@ -143,6 +149,7 @@ function frontHtml(p) {
   const mClass = p.status === 'stub' ? 'm-unknown' : `m-${m}`;
   return `
     <div class="front">
+      <div class="front-watermark" aria-hidden="true">${escapeHtml(p.id)}</div>
       <div class="front-top">
         <span class="badge">${escapeHtml(p.category || '—')}</span>
         <span class="badge ${mClass}">${escapeHtml(mLabel)}</span>
@@ -152,7 +159,11 @@ function frontHtml(p) {
         <h1 class="ptitle">${escapeHtml(p.title || '')}</h1>
         <p class="hint">想好后再显示答案</p>
       </div>
-      <button type="button" class="reveal" data-act="show" title="快捷键 空格">显示答案 <span class="btn-kbd desktop-only">空格</span></button>
+      <button type="button" class="reveal" data-act="show" title="快捷键 空格">
+        ${iconAttr(ICON.eye)}
+        <span>显示答案</span>
+        <span class="btn-kbd desktop-only">空格</span>
+      </button>
     </div>
   `;
 }
@@ -175,16 +186,22 @@ function backHtml(p) {
     ? `<div class="subblock"><h4>易错 / 补充</h4><ul>${listHtml(notes)}</ul></div>`
     : '';
 
-  const lc = p.url
-    ? `<a class="ghost" href="${escapeHtml(p.url)}" target="_blank" rel="noopener">LeetCode</a>`
-    : '';
-
   const codeTitle = hasCode
     ? `<div class="pane-head">
           <h3 class="pane-title">题解代码</h3>
-          <button type="button" class="ghost copy-btn" data-act="copy-code" title="复制代码">复制</button>
+          <button type="button" class="ghost copy-btn" data-act="copy-code" title="复制代码">
+            ${iconAttr(ICON.copy)}
+            <span class="copy-label">复制</span>
+          </button>
         </div>`
     : `<h3 class="pane-title">题解代码</h3>`;
+
+  const lcBtn = p.url
+    ? `<a class="ghost" href="${escapeHtml(p.url)}" target="_blank" rel="noopener">
+        ${iconAttr(ICON.externalLink)}
+        <span>LeetCode</span>
+      </a>`
+    : '';
 
   return `
     <div class="back">
@@ -194,8 +211,12 @@ function backHtml(p) {
           <h2 class="back-title">#${escapeHtml(p.id)} ${escapeHtml(p.title || '')}</h2>
         </div>
         <div class="back-actions">
-          ${lc}
-          <button type="button" class="ghost" data-act="hide" title="快捷键 空格">回到正面 <span class="btn-kbd desktop-only">空格</span></button>
+          ${lcBtn}
+          <button type="button" class="ghost" data-act="hide" title="快捷键 空格">
+            ${iconAttr(ICON.rotateCcw)}
+            <span>回到正面</span>
+            <span class="btn-kbd desktop-only">空格</span>
+          </button>
         </div>
       </div>
       <div class="split">
@@ -238,6 +259,7 @@ function paintFace(html, { animate = false } = {}) {
         }
       }
     }
+    mountIcons(face);
     if (withEnter) {
       face.classList.add('is-entering');
       requestAnimationFrame(() => {
@@ -252,7 +274,6 @@ function paintFace(html, { animate = false } = {}) {
   if (state.animTimer != null) {
     clearTimeout(state.animTimer);
     state.animTimer = null;
-    state.animating = false;
     face.classList.remove('is-leaving');
   }
 
@@ -261,13 +282,11 @@ function paintFace(html, { animate = false } = {}) {
     return;
   }
 
-  state.animating = true;
   face.classList.add('is-leaving');
   state.animTimer = setTimeout(() => {
     state.animTimer = null;
-    state.animating = false;
     apply(true);
-  }, 160);
+  }, motionMs(MOTION.faceLeaveMs));
 }
 
 function render({ animate = false } = {}) {
@@ -298,7 +317,6 @@ function goTo(i, { animate = true } = {}) {
   const n = state.deck.length;
   state.index = ((i % n) + n) % n;
   state.showing = 'front';
-  state.codeOpen = true;
   render({ animate });
 }
 
@@ -323,26 +341,23 @@ function shuffle() {
   rebuildDeck({ shuffle: true });
   state.index = 0;
   state.showing = 'front';
-  state.codeOpen = true;
   render({ animate: true });
 }
 
 function showAnswer() {
   state.showing = 'back';
-  state.codeOpen = true; // default expanded when revealing answer
   render({ animate: true });
 }
 
 function hideAnswer() {
   state.showing = 'front';
-  state.codeOpen = true;
   render({ animate: true });
 }
 
-function toggleCode() {
-  state.codeOpen = !state.codeOpen;
-  // no leave animation for code toggle — keep side
-  render({ animate: false });
+/** Blur focused control so Space / arrows don't double-fire native button activation. */
+function blurActiveControl() {
+  const el = document.activeElement;
+  if (el instanceof HTMLElement && el !== document.body) el.blur();
 }
 
 async function copyCode(btn) {
@@ -377,57 +392,88 @@ async function copyCode(btn) {
   }
 
   if (!(btn instanceof HTMLElement)) return;
-  const prev = btn.textContent;
-  btn.textContent = ok ? '已复制' : '复制失败';
+  const label = btn.querySelector('.copy-label');
+  const prev = label?.textContent || '复制';
+  if (label) label.textContent = ok ? '已复制' : '复制失败';
+  else btn.textContent = ok ? '已复制' : '复制失败';
   btn.classList.toggle('is-copied', ok);
   btn.classList.toggle('is-failed', !ok);
   window.setTimeout(() => {
     // button may have been re-rendered away
     if (document.body.contains(btn)) {
-      btn.textContent = prev || '复制';
+      if (label) label.textContent = prev;
+      else btn.textContent = prev;
       btn.classList.remove('is-copied', 'is-failed');
     }
   }, 1200);
 }
 
+/**
+ * Apply mastery rating, rebuild the filtered deck, then advance.
+ * - Card still in deck → go to the next card after it.
+ * - Card dropped by filter → stay at old index (next card slides into place).
+ * Always show the front of the resulting card.
+ */
 function rate(level) {
   const p = current();
   if (!p) return;
-  setMastery(p.id, level);
-  const keepId = p.id;
-  rebuildDeck({ keepId });
+  const oldIndex = state.index;
+  const ratedId = p.id;
+  setMastery(ratedId, level);
+  rebuildDeck();
+  fillCategories(); // counts reflect mastery filter
+
   if (!state.deck.length) {
+    state.index = 0;
+    state.showing = 'front';
     render({ animate: false });
+    updateFilterToggleLabel();
     return;
   }
-  const idx = state.deck.findIndex((x) => String(x.id) === String(keepId));
-  state.index = idx >= 0 ? idx : Math.min(state.index, state.deck.length - 1);
-  // Anki-like: after rating, go next
-  if (state.deck.length > 1) {
-    // move to next in deck after current
-    const nextIdx = (state.index + 1) % state.deck.length;
-    state.index = nextIdx;
-    state.showing = 'front';
-    state.codeOpen = true;
-    render({ animate: true });
+
+  const stillIdx = state.deck.findIndex((x) => String(x.id) === String(ratedId));
+  if (stillIdx >= 0) {
+    state.index = (stillIdx + 1) % state.deck.length;
   } else {
-    render({ animate: false });
+    // Removed: the card now at oldIndex is already the "next" one.
+    state.index = oldIndex >= state.deck.length ? 0 : oldIndex;
   }
+  state.showing = 'front';
+  render({ animate: true });
+  updateFilterToggleLabel();
+}
+
+/** Problems matching mastery filter only (ignores category) — for option counts. */
+function masteryFilteredProblems() {
+  if (!catalog) return [];
+  let list = catalog.problems.slice();
+  const mf = state.masteryFilter;
+  if (mf === 'stub') list = list.filter((p) => p.status === 'stub');
+  else if (mf === 'unknown' || mf === 'fuzzy' || mf === 'known') {
+    list = list.filter((p) => getMastery(p.id) === mf);
+  }
+  return list;
 }
 
 function fillCategories() {
   const sel = $('cat');
   if (!sel || !catalog) return;
   const prev = state.category;
+  const base = masteryFilteredProblems();
+  const countByCat = new Map();
+  for (const p of base) {
+    countByCat.set(p.category, (countByCat.get(p.category) || 0) + 1);
+  }
+
   sel.innerHTML = '';
   const all = document.createElement('option');
   all.value = 'all';
-  all.textContent = `全部分类 (${catalog.problems.length})`;
+  all.textContent = `全部分类 (${base.length})`;
   sel.append(all);
   for (const c of catalog.categories) {
     const o = document.createElement('option');
     o.value = c.name;
-    o.textContent = `${c.name} (${c.count})`;
+    o.textContent = `${c.name} (${countByCat.get(c.name) || 0})`;
     sel.append(o);
   }
   sel.value = prev;
@@ -440,8 +486,12 @@ function fillCategories() {
 function onFilter() {
   state.index = 0;
   state.showing = 'front';
-  state.codeOpen = true;
   rebuildDeck();
+  fillCategories();
+  // Mobile: collapse filter panel so the card is fully visible after choosing.
+  if (isMobileFiltersMode()) {
+    $('filters')?.classList.remove('is-open');
+  }
   render({ animate: true });
   updateFilterToggleLabel();
 }
@@ -461,7 +511,15 @@ function updateFilterToggleLabel() {
     parts.push(map[state.masteryFilter] || state.masteryFilter);
   }
   const base = open ? '收起' : '筛选';
-  btn.textContent = !open && parts.length ? `筛选 · ${parts.join(' · ')}` : base;
+  const label = !open && parts.length ? `筛选 · ${parts.join(' · ')}` : base;
+  const labelEl = btn.querySelector('.filter-toggle-label');
+  if (labelEl) labelEl.textContent = label;
+  else {
+    // preserve icon slot if present
+    const icon = btn.querySelector('[data-lucide], .icon-slot');
+    btn.textContent = label;
+    if (icon) btn.prepend(icon);
+  }
   btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
 
@@ -504,9 +562,6 @@ function bind() {
       case 'hide':
         hideAnswer();
         break;
-      case 'toggle-code':
-        toggleCode();
-        break;
       case 'copy-code':
         copyCode(el);
         break;
@@ -537,16 +592,19 @@ function bind() {
 
   $('btn-theme')?.addEventListener('click', () => {
     const cur = document.documentElement.getAttribute('data-theme');
-    applyTheme(cur === 'light' ? 'dark' : 'light');
+    applyTheme(cur === 'light' ? 'dark' : 'light', { animate: true });
   });
 
   $('cat')?.addEventListener('change', (e) => {
     state.category = e.target.value;
     onFilter();
+    // Blur so ←/→ no longer change <select> options (browser default)
+    if (e.target instanceof HTMLElement) e.target.blur();
   });
   $('mastery')?.addEventListener('change', (e) => {
     state.masteryFilter = e.target.value;
     onFilter();
+    if (e.target instanceof HTMLElement) e.target.blur();
   });
 
   window.addEventListener('resize', () => {
@@ -557,38 +615,62 @@ function bind() {
 
   document.addEventListener('keydown', (e) => {
     const tag = e.target && e.target.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    const onSelect = tag === 'SELECT';
+    // Text fields keep native behavior; select is special: ←/→ must switch
+    // problems within the current filtered deck, not the category option.
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+    const isNext = e.key === 'ArrowRight' || e.key === 'j';
+    const isPrev = e.key === 'ArrowLeft' || e.key === 'k';
+
+    if (onSelect) {
+      if (isNext || isPrev) {
+        e.preventDefault();
+        if (e.target instanceof HTMLElement) e.target.blur();
+        if (isNext) next();
+        else prev();
+      }
+      // leave other keys (arrows up/down, space) to the select
+      return;
+    }
 
     if (e.key === ' ' || e.code === 'Space') {
       e.preventDefault();
+      blurActiveControl();
       if (state.showing === 'front') showAnswer();
       else hideAnswer();
       return;
     }
-    if (e.key === 'ArrowRight' || e.key === 'j') {
+    if (isNext) {
       e.preventDefault();
+      blurActiveControl();
       next();
       return;
     }
-    if (e.key === 'ArrowLeft' || e.key === 'k') {
+    if (isPrev) {
       e.preventDefault();
+      blurActiveControl();
       prev();
       return;
     }
     if (e.key === 'r' || e.key === 'R') {
       e.preventDefault();
+      blurActiveControl();
       randomOne();
       return;
     }
     if (state.showing === 'back') {
       if (e.key === '1') {
         e.preventDefault();
+        blurActiveControl();
         rate('unknown');
       } else if (e.key === '2') {
         e.preventDefault();
+        blurActiveControl();
         rate('fuzzy');
       } else if (e.key === '3') {
         e.preventDefault();
+        blurActiveControl();
         rate('known');
       }
     }
@@ -596,9 +678,11 @@ function bind() {
 }
 
 async function main() {
+  installAmbient({ density: 1, intensity: 1 });
   initTheme();
   loadMastery();
   bind();
+  await mountIcons(document);
 
   const res = await fetch('./problems.json');
   if (!res.ok) throw new Error('problems.json load failed');
@@ -609,6 +693,7 @@ async function main() {
   rebuildDeck();
   syncFiltersForViewport();
   render({ animate: false });
+  document.body.classList.add('is-ready');
 }
 
 main().catch((err) => {

@@ -3,28 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0f1115" />
+  <meta name="theme-color" content="#06080c" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <title>LC Hot 100 速记</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Source+Sans+3:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./study.css?v=11" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./ui-tokens.css?v=20" />
+  <link rel="stylesheet" href="./study.css?v=20" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" id="hljs-theme" />
 </head>
-<body>
+<body class="page-study">
+  <div class="canvas-frame" aria-hidden="true">
+    <span class="frame-mark frame-mark-tl">LC</span>
+    <span class="frame-mark frame-mark-br">HOT 100</span>
+  </div>
+
   <div class="app" id="app">
     <header class="bar">
-      <a class="link" href="./list.html">☰ 题库</a>
+      <a class="link link-library" href="./list.html">
+        <span class="icon-slot" data-lucide="library" aria-hidden="true"></span>
+        <span>题库</span>
+      </a>
       <div class="bar-mid">
+        <span class="progress-label">DECK</span>
         <span id="progress" class="progress">—</span>
       </div>
       <div class="bar-right">
         <button type="button" class="chip filter-toggle" data-act="toggle-filters" id="filter-toggle" aria-expanded="false" aria-controls="filters">
-          筛选
+          <span class="icon-slot" data-lucide="filter" aria-hidden="true"></span>
+          <span class="filter-toggle-label">筛选</span>
         </button>
-        <button type="button" class="icon" id="btn-theme" title="主题">☾</button>
+        <button type="button" class="icon" id="btn-theme" title="主题" aria-label="切换浅色/深色主题">
+          <span class="icon-slot theme-icon" data-lucide="moon" aria-hidden="true"></span>
+        </button>
       </div>
     </header>
 
@@ -37,14 +50,21 @@
         <option value="known">记住了</option>
         <option value="stub">待补全</option>
       </select>
-      <button type="button" class="chip" data-act="shuffle">打乱</button>
-      <button type="button" class="chip" data-act="random">随机</button>
+      <button type="button" class="chip chip-icon" data-act="shuffle">
+        <span class="icon-slot" data-lucide="shuffle" aria-hidden="true"></span>
+        <span>打乱</span>
+      </button>
+      <button type="button" class="chip chip-icon" data-act="random">
+        <span class="icon-slot" data-lucide="dices" aria-hidden="true"></span>
+        <span>随机</span>
+      </button>
     </div>
 
     <main class="stage">
       <div id="empty" class="empty" hidden>这个筛选下没有题目</div>
 
       <div id="card" class="card" hidden>
+        <div class="card-glow" aria-hidden="true"></div>
         <div id="face" class="face" data-showing="front">
           <!-- content injected -->
         </div>
@@ -52,8 +72,14 @@
     </main>
 
     <nav class="nav" aria-label="题目导航">
-      <button type="button" class="nav-btn" data-act="prev" title="快捷键 ← 或 K">上一题</button>
-      <button type="button" class="nav-btn nav-primary" data-act="next" title="快捷键 → 或 J">下一题</button>
+      <button type="button" class="nav-btn" data-act="prev" title="快捷键 ← 或 K">
+        <span class="icon-slot" data-lucide="chevron-left" aria-hidden="true"></span>
+        <span>上一题</span>
+      </button>
+      <button type="button" class="nav-btn nav-primary" data-act="next" title="快捷键 → 或 J">
+        <span>下一题</span>
+        <span class="icon-slot" data-lucide="chevron-right" aria-hidden="true"></span>
+      </button>
     </nav>
 
     <p class="kbd-hint desktop-only" title="背面评分：1 不会 · 2 模糊 · 3 记住了">
@@ -69,6 +95,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/go.min.js"></script>
-  <script type="module" src="./study.js?v=11"></script>
+  <script type="module" src="./study.js?v=20"></script>
 </body>
 </html>
